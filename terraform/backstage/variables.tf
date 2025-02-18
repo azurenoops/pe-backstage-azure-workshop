@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   description = "Specifies the name of the resource group."
-  default     = "backstage"
+  default     = "backstage-rg"
   type        = string
 }
 
@@ -22,7 +22,7 @@ variable "location" {
 variable "aks_node_resource_group" {
   description = "Specifies the name of the resource group for the AKS nodes."
   type        = string
-  default     = "aks-gitops"
+  default     = "pe-aks-gitops-rg"
 }
 
 # Addons Git

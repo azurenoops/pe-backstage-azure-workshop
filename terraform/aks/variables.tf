@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   description = "Specifies the name of the resource group."
-  default     = "aks-gitops"
+  default     = "pe-aks-gitops-rg"
   type        = string
 }
 

@@ -9,7 +9,7 @@ kubernetes_version = null # Defaults to latest
 # GitOps Addons configuration
 gitops_addons_org      = "https://github.com/azurenoops"
 gitops_addons_repo     = "pe-backstage-azure-workshop"
-gitops_addons_basepath = "gitops/"
+gitops_addons_basepath = "terraform/aks/gitops/"
 gitops_addons_path     = "bootstrap/control-plane/addons"
 gitops_addons_revision = "main"
 
@@ -22,4 +22,4 @@ addons = {
 }
 
 # Resource group name
-resource_group_name = "aks-gitops"
+resource_group_name = "pe-aks-gitops-rg"

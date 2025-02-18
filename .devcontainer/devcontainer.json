@@ -1,46 +1,31 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
-  "name": "Workshop",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  // Alternatives images:
-  // - python:3.11-bullseye
-  // - dotnet:6.0-bullseye
-  // - javascript-node:20-bullseye
-  // - java:21-bullseye
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
-  // Features to add to the dev container. More info: https://containers.dev/features.
+  "name": "Workshop Container",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
+  "containerUser": "vscode",
   "features": {
-    "ghcr.io/devcontainers/features/azure-cli:1": {
-      "version": "latest",
-      "installBicep": true
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/azure/azure-dev/azd:latest": {}
-  },
-  // Configure tool-specific properties.
+      "azure-cli": {
+        "version":"latest"
+      },
+      "ghcr.io/devcontainers/features/terraform:latest":{ 
+        "version":"latest",
+        "tflint":"latest"
+      }
+  },  
   "customizations": {
     "vscode": {
       "extensions": [
+        // Azure
+        "ms-vscode.vscode-node-azure-pack",
         "ms-azuretools.azure-dev",
-        "ms-azuretools.vscode-bicep",
+        // Terraform
         "hashicorp.terraform",
         "ms-vscode.azurecli",
         "ms-dotnettools.vscode-dotnet-runtime",
-        "ms-azuretools.vscode-bicep",
         "ms-azuretools.azure-dev",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "github.vscode-github-actions"
       ]
     }
   },
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [],
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "npm install -g @moaw/cli",
-  // Set minimal host requirements for the container.
-  // "hostRequirements": {
-  //   "memory": "8gb"
-  // }
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  "remoteUser": "vscode"
 }
