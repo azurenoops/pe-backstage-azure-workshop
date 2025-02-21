@@ -1549,9 +1549,9 @@ Now that you logged in to the ArgoCD UI using the initial admin password. You sh
 
 </div>
 
-Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster. 
+Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster.
 
-## Step 5 - Adding Kubernetes plugin to Backstage
+## Step 5 - Adding Backstage to ArgoCD
 
 To view the Kubernetes resources in Backstage, we need to add the Kubernetes plugin to Backstage. This will allow users to see the Kubernetes resources in Backstage.
 
