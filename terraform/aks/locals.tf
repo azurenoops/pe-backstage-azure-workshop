@@ -15,8 +15,7 @@ locals {
 
   github_token = var.github_token
   azure_addons = {
-    enable_azure_crossplane_upbound_provider = var.infrastructure_provider == "crossplane" ? true : false
-    enable_cluster_api_operator              = var.infrastructure_provider == "capz" ? true : false
+    enable_azure_crossplane_upbound_provider = true
   }
 
   oss_addons = {
@@ -27,7 +26,7 @@ locals {
     enable_argo_events                     = try(var.addons.enable_argo_events, true)    # installed by default
     enable_argo_workflows                  = try(var.addons.enable_argo_workflows, true) # installed by default
     enable_cluster_proportional_autoscaler = try(var.addons.enable_cluster_proportional_autoscaler, false)
-    enable_cert_manager                    = var.infrastructure_provider == "capz" || try(var.addons.enable_cert_manager, false) ? true : false
+    enable_cert_manager                    = try(var.addons.enable_cert_manager, false) ? true : false
     enable_gatekeeper                      = try(var.addons.enable_gatekeeper, false)
     enable_gpu_operator                    = try(var.addons.enable_gpu_operator, false)
     enable_ingress_nginx                   = try(var.addons.enable_ingress_nginx, false)
@@ -39,9 +38,9 @@ locals {
     enable_prometheus_adapter              = try(var.addons.enable_prometheus_adapter, false)
     enable_secrets_store_csi_driver        = try(var.addons.enable_secrets_store_csi_driver, false)
     enable_vpa                             = try(var.addons.enable_vpa, false)
-    enable_crossplane                      = var.infrastructure_provider == "crossplane" ? true : false
-    enable_crossplane_helm_provider        = var.infrastructure_provider == "crossplane" ? true : false
-    enable_crossplane_kubernetes_provider  = var.infrastructure_provider == "crossplane" ? true : false
+    enable_crossplane                      = true
+    enable_crossplane_helm_provider        = true
+    enable_crossplane_kubernetes_provider  = true
   }
   addons = merge(local.azure_addons, local.oss_addons)
 

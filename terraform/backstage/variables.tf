@@ -22,7 +22,7 @@ variable "location" {
 variable "aks_node_resource_group" {
   description = "Specifies the name of the resource group for the AKS nodes."
   type        = string
-  default     = "pe-aks-gitops-rg"
+  default     = "rg-pe-aks-gitops"
 }
 
 # Addons Git
