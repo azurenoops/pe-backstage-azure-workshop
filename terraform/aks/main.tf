@@ -4,8 +4,8 @@ data "azurerm_subscription" "current" {}
 # Resource Group: Resource
 ################################################################################
 resource "azurerm_resource_group" "this" {
-  name     = var.resource_group_name
-  location = var.location
+  name     = local.resource_group_name
+  location = local.location
   tags     = var.tags
 }
 
@@ -37,7 +37,7 @@ module "aks" {
   source                                          = "Azure/aks/azurerm"
   version                                         = "9.4.1"
   resource_group_name                             = azurerm_resource_group.this.name
-  location                                        = var.location
+  location                                        = local.location
   kubernetes_version                              = var.kubernetes_version
   orchestrator_version                            = var.kubernetes_version
   role_based_access_control_enabled               = var.role_based_access_control_enabled

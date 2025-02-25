@@ -1,8 +1,8 @@
 ---
 published: false                        # Optional. Set to true to publish the workshop (default: false)
 type: workshop                          # Required.
-title: Product Hands-on Lab - Platform Engineering with Backstage # Required. Full title of the workshop
-short_title: Platform Engineering with Backstage      # Optional. Short title displayed in the header
+title: Product Hands-on Lab - Platform Engineering with Backstage and Azure Kubernetes Service # Required. Full title of the workshop
+short_title: Platform Engineering with Backstage and Azure Kubernetes Service     # Optional. Short title displayed in the header
 description: This workshop will cover the topic of platform engineering using   # Required.
 level: intermediate                     # Required. Can be 'beginner', 'intermediate' or 'advanced'
 authors:                                # Required. You can add as many authors as needed      
@@ -15,7 +15,7 @@ tags: azure policies, azure deployment environment, backstage, github advanced s
 navigation_levels: 3
 ---
 
-# Product Hands-on Lab - Platform engineering with Backstage
+# Product Hands-on Lab - Platform engineering with Backstage and Azure Kubernetes Service
 
 Welcome to this Platform engineering with Backstage Workshop. At its core, platform engineering is about constructing a solid and adaptable groundwork that simplifies and accelerates the development, deployment, and operation of software applications. The goal is to abstract the complexity inherent in managing infrastructure and operational concerns, enabling dev teams to focus on crafting code that adds direct value to the mission.
 
@@ -1035,7 +1035,7 @@ This configuration will add GitHub authentication to Backstage.
 
 <div class="tip" data-title="Tip">
 
-> The clientId and clientSecret are the values that you copied to the `environment.sh` file. The `${}` syntax is used to reference the environment variables in the `environment.sh` file.
+> The clientId and clientSecret are the values that you copied to the `environments.sh` file. The `${}` syntax is used to reference the environment variables in the `environments.sh` file.
 
 </div>
 
@@ -1184,11 +1184,11 @@ Then click on Generate token. If you need more information on this mechanism you
 
 <div class="task" data-title="Task">
 
-> Open the `environment.sh` file in the root directory of your Backstage app, and add the following configuration to the `environment.sh` file.
+> Open the `environments.sh` file in the root directory of your Backstage app, and add the following configuration to the `environments.sh` file.
 </div>
 
 ```shell
-echo "GITHUB_TOKEN=<your-github-pat>" >> environment.sh
+echo "GITHUB_TOKEN=<your-github-pat>" >> environments.sh
 export "GITHUB_TOKEN=<your-github-pat>"
 ```
 

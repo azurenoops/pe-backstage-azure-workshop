@@ -3,8 +3,8 @@
 # Resource Group: Resource
 ################################################################################
 resource "azurerm_resource_group" "this" {
-  name     = var.resource_group_name
-  location = var.location
+  name     = local.resource_group_name
+  location = local.location
   tags     = var.tags
 }
 
@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "this" {
 ################################################################################
 resource "azurerm_postgresql_flexible_server" "backstagedbserver" {
   name                          = "backstage-postgresql-server"
-  location                      = var.location
+  location                      = local.location
   public_network_access_enabled = true
   administrator_password        = var.postgres_password
   resource_group_name           = azurerm_resource_group.this.name
