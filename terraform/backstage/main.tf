@@ -46,7 +46,7 @@ resource "azuread_application" "backstage-app" {
   display_name = "Backstage"
 
   app_role {
-    id              = uuid() # Generate a unique ID for the role
+    id                   = uuid() # Generate a unique ID for the role
     allowed_member_types = ["User"]
     description          = "Allows the app to read the profile of signed-in users."
     display_name         = "User.Read"
@@ -54,7 +54,7 @@ resource "azuread_application" "backstage-app" {
   }
 
   app_role {
-    id              = uuid() # Generate a unique ID for the role
+    id                   = uuid() # Generate a unique ID for the role
     allowed_member_types = ["User"]
     description          = "Allows the app to read all users' full profiles."
     display_name         = "User.Read.All"
@@ -62,7 +62,7 @@ resource "azuread_application" "backstage-app" {
   }
 
   app_role {
-    id              = uuid() # Generate a unique ID for the role
+    id                   = uuid() # Generate a unique ID for the role
     allowed_member_types = ["User"]
     description          = "Allows the app to read the memberships of all groups."
     display_name         = "GroupMember.Read.All"
@@ -98,7 +98,7 @@ resource "azuread_application" "backstage-app" {
     }
 
     resource_access {
-      id = "e383f46e-2787-4529-855e-0e479a3ffac0" # mail.send
+      id   = "e383f46e-2787-4529-855e-0e479a3ffac0" # mail.send
       type = "Scope"
     }
 
@@ -113,8 +113,8 @@ resource "azuread_application" "backstage-app" {
 # Define the OAuth2 permissions (redirect URIs)
 resource "azuread_application_redirect_uris" "backstage_redirect_uri" {
   application_id = "/applications/${azuread_application.backstage-app.object_id}"
-  type                  = "Web"
-  redirect_uris         = ["https://${azurerm_public_ip.backstage_public_ip.ip_address}/api/auth/microsoft/handler/frame"]
+  type           = "Web"
+  redirect_uris  = ["https://${azurerm_public_ip.backstage_public_ip.ip_address}/api/auth/microsoft/handler/frame"]
 }
 # Define the service principal
 resource "azuread_service_principal" "backstage-app-sp" {
@@ -128,7 +128,7 @@ resource "azuread_service_principal_password" "backstage-sp-password" {
 }
 
 resource "null_resource" "ascii_art" {
-  depends_on = [ azuread_service_principal_password.backstage-sp-password ]
+  depends_on = [azuread_service_principal_password.backstage-sp-password]
   provisioner "local-exec" {
     command = <<EOT
 echo "    _      _     ______  _____   _______ "
@@ -167,17 +167,17 @@ resource "kubernetes_namespace" "backstage_nammespace" {
   }
 }
 resource "kubernetes_service_account" "backstage_service_account" {
-  depends_on = [ kubernetes_namespace.backstage_nammespace ]
+  depends_on = [kubernetes_namespace.backstage_nammespace]
   metadata {
     name      = "backstage-service-account"
     namespace = "backstage"
-    
+
   }
-  
+
 }
 
 resource "kubernetes_role" "backstage_pod_reader" {
-  depends_on = [ kubernetes_service_account.backstage_service_account ]
+  depends_on = [kubernetes_service_account.backstage_service_account]
   metadata {
     name      = "backstage-pod-reader"
     namespace = "backstage"
@@ -185,7 +185,7 @@ resource "kubernetes_role" "backstage_pod_reader" {
 
   rule {
     api_groups = [""]
-    resources  = [
+    resources = [
       "pods",
       "services",
       "replicationcontrollers",
@@ -221,9 +221,9 @@ resource "kubernetes_role_binding" "backstage_role_binding" {
 }
 
 resource "kubernetes_secret" "backstage_service_account_secret" {
-  depends_on = [ kubernetes_service_account.backstage_service_account ]
+  depends_on = [kubernetes_service_account.backstage_service_account]
   metadata {
-      annotations = {
+    annotations = {
       "kubernetes.io/service-account.name" = kubernetes_service_account.backstage_service_account.metadata[0].name
     }
     name      = "backstage-service-account-secret"
@@ -235,10 +235,11 @@ resource "kubernetes_secret" "backstage_service_account_secret" {
 }
 
 ################################################################################
-# Backstage: Bootstrap
+# Backstage: Helm Release
 ################################################################################
 
 resource "kubernetes_secret" "tls_secret" {
+  count      = var.helm_release ? 1 : 0
   depends_on = [kubernetes_namespace.backstage_nammespace]
 
   metadata {
@@ -249,23 +250,23 @@ resource "kubernetes_secret" "tls_secret" {
   type = "kubernetes.io/tls"
 
   data = {
-    "tls.crt" = file("tls.crt")  # Adjust the path accordingly
-    "tls.key" = file("tls.key")  # Adjust the path accordingly
+    "tls.crt" = file("tls.crt") # Adjust the path accordingly
+    "tls.key" = file("tls.key") # Adjust the path accordingly
   }
 }
 
 resource "helm_release" "backstage" {
-  depends_on = [ kubernetes_secret.tls_secret ]
+  count      = var.helm_release ? 1 : 0
+  depends_on = [kubernetes_secret.tls_secret]
   name       = "backstage"
-  repository = "oci://oowcontainerimages.azurecr.io/helm"
   chart      = "backstagechart"
-  version    = "0.1.0"
+  version    = "1.0.0"
 
   set {
     name  = "image.repository"
-    value = "oowcontainerimages.azurecr.io/backstage"
+    value = "backstageacrjrs.azurecr.us/backstage"
   }
-    set {
+  set {
     name  = "image.tag"
     value = "v2"
   }
@@ -274,7 +275,7 @@ resource "helm_release" "backstage" {
     value = var.aks_name
   }
 
-      set {
+  set {
     name  = "env.K8S_CLUSTER_URL"
     value = "https://${var.aks_name}"
   }
@@ -284,13 +285,13 @@ resource "helm_release" "backstage" {
     value = kubernetes_secret.backstage_service_account_secret.data.token
   }
 
-    set {
+  set {
     name  = "env.GITHUB_TOKEN"
     value = local.github_token
   }
 
   set {
-    name = "env.GITOPS_REPO"
+    name  = "env.GITOPS_REPO"
     value = local.gitops_addons_url
   }
 
@@ -356,11 +357,11 @@ resource "helm_release" "backstage" {
     name  = "env.AZURE_TENANT_ID"
     value = data.azurerm_client_config.current.tenant_id
   }
-    set {
+  set {
     name  = "podAnnotations.backstage\\.io/kubernetes-id"
     value = "${var.aks_name}-component"
   }
-  
+
   set {
     name  = "labels.kubernetesId"
     value = "${var.aks_name}-component"

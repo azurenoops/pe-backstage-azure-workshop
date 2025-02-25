@@ -45,6 +45,12 @@ variable "kubconfig_path" {
   default     = null
 }
 
+variable "helm_release" {
+  description = "Specifies the Helm release."
+  type        = bool
+  default     = false
+}
+
 # Addons Git
 variable "gitops_addons_org" {
   description = "Specifies the Git repository org/user contains for addons."
