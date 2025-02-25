@@ -5,7 +5,7 @@
 resource "azurerm_resource_group" "this" {
   name     = var.resource_group_name
   location = var.location
-  tags     = "backstage"
+  tags     = var.tags
 }
 
 ################################################################################
@@ -269,14 +269,14 @@ resource "helm_release" "backstage" {
     name  = "image.tag"
     value = "v2"
   }
-    set {
+  set {
     name  = "env.K8S_CLUSTER_NAME"
-    value = module.aks.aks_name
+    value = var.aks_name
   }
 
       set {
     name  = "env.K8S_CLUSTER_URL"
-    value = "https://${module.aks.aks_name}"
+    value = "https://${var.aks_name}"
   }
 
   set {
@@ -300,7 +300,7 @@ resource "helm_release" "backstage" {
   }
   set {
     name  = "service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-resource-group"
-    value = module.aks.node_resource_group
+    value = var.aks_node_resource_group
   }
 
   set {
@@ -358,11 +358,11 @@ resource "helm_release" "backstage" {
   }
     set {
     name  = "podAnnotations.backstage\\.io/kubernetes-id"
-    value = "${module.aks.aks_name}-component"
+    value = "${var.aks_name}-component"
   }
   
   set {
     name  = "labels.kubernetesId"
-    value = "${module.aks.aks_name}-component"
+    value = "${var.aks_name}-component"
   }
 }

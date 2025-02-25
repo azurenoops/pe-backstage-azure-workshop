@@ -14,7 +14,15 @@ variable "github_token" {
 variable "location" {
   description = "Specifies the the location for the Azure resources."
   type        = string
-  default     = "eastus2"
+  default     = "usgovvirginia"
+}
+
+variable "tags" {
+  description = "Specifies tags for all the resources."
+  default = {
+    createdWith = "Terraform"
+    portal     = "Backstage"
+  }
 }
 
 # AKS Cluster
@@ -22,7 +30,19 @@ variable "location" {
 variable "aks_node_resource_group" {
   description = "Specifies the name of the resource group for the AKS nodes."
   type        = string
-  default     = "pe-aks-gitops-rg"
+  default     = "rg-pe-aks-gitops"
+}
+
+variable "aks_name" {
+  description = "Specifies the name of the AKS cluster."
+  type        = string
+  default     = "pe-aks"
+}
+
+variable "kubconfig_path" {
+  description = "Specifies the path to the kubeconfig file."
+  type        = string
+  default     = null
 }
 
 # Addons Git

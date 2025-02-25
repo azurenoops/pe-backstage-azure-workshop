@@ -21,28 +21,19 @@ Welcome to this Platform engineering with Backstage Workshop. At its core, platf
 
 In order to comprehend real-world situations, you will be testing with serveral different toos and services in several labs. You will be able to learn how to deploy and manage Azure resources, as well as how to use Azure services to build and deploy applications with the help of AKS, GitHub and Backstage. Don't worry; you will be walked through the entire procedure in this step-by-step lab.
 
-You will receive guidance on how to do each step throughout this workshop. You will be able to test your knowledge and skills by completing the labs.
-Before seeing the solutions listed under the provided resources and links, it is advised to look at the solutions placed under the '📚 Toggle solution' panel.
-
-<div class="task" data-title="Task">
-
-> You will find the instructions and expected configurations for each Lab step in these yellow **TASK** boxes. Inputs and parameters to select will be defined, all the rest can remain as default as it has no impact on the scenario.
-
-</div>
-
 This lab leverages the [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev/gitops-bridge?tab=readme-ov-file). The following diagram shows the high-level architecture of the solution from [platformengineering.org](https://platformengineering.org/):
 ![GitOps Bridge Pattern](./assets/lab0-prerequisites/gitops-bridge-pattern.png)
 
 The tools in this lab to build out your Integrated Development Platform (IDP) include:
 
-- [GitHub](http://github.com) (as your Git repo)
+- [GitHub][GitHub] (as your Git repo)
 - [Backstage](https://backstage.io/) (as your self-service portal)
 - [ArgoCD](https://argoproj.github.io/cd/) (as your Platform Orchestrator)
 - [Argo Workflows](https://argoproj.github.io/workflows/) (to trigger post deployment tasks)
-- [Crossplane]() (to provision Azure/GitHub resources)
-- [Azure Kubernetes Service (AKS)]() (as your Control Plane cluster)
-- [Azure Key Vault]() (to store secrets)
-- [Azure Container Registry]() (to store container images)
+- [Crossplane](https://crossplane.io/)(to provision Azure/GitHub resources)
+- [Azure Kubernetes Service (AKS)](http://azure.microsoft.com/services/kubernetes-service/) (as your Control Plane cluster)
+- [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/) (to store secrets)
+- [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/) (to store container images)
 
 <div class="tip" data-title="Tip">
 
@@ -77,8 +68,9 @@ To be able to do the lab content you will also need:
 - Create a [fork][repo-fork] of the repository from the main branch to help you keep track of your potential changes
 
 2 development options are available:
-  - 🥈 **Preferred method** : Local Devcontainer
-  - 🥉 Local Dev Environment with all the prerequisites detailed below
+
+- 🥈 **Preferred method** : Local Devcontainer
+- 🥉 Local Dev Environment with all the prerequisites detailed below
 
 <div class="tip" data-title="Tips">
 
@@ -101,7 +93,7 @@ Once you have cloned the repository locally, make sure Docker Desktop is up and 
 
 You will be prompted to open the project in a Dev Container. Click on `Reopen in Container`.
 
-If you are not prompted by Visual Studio Code, you can open the command palette (`Ctrl + Shift + P`) and search for `Reopen in Container` and select it: 
+If you are not prompted by Visual Studio Code, you can open the command palette (`Ctrl + Shift + P`) and search for `Reopen in Container` and select it:
 
 ![devcontainer-reopen](./assets/lab0-prerequisites/devcontainer-reopen.png)
 
@@ -120,13 +112,9 @@ Once you have set up your local environment, you can clone the Hands-on Lab Plat
 
 <div class="task" data-title="Task">
 
-> - Log into your Azure subscription in your environment using Azure CLI and on the [Azure Portal][az-portal] using your credentials.
+> - Log into your Azure subscription using your pre-configured environment using Azure CLI and on the [Azure Portal][az-portal] using your credentials.
 
 </div>
-
-<details>
-
-<summary>📚 Toggle solution</summary>
 
 ```bash
 # Login to Azure : 
@@ -160,51 +148,83 @@ az provider register --namespace 'Microsoft.Storage'
 az provider register --namespace 'Microsoft.Network'
 ```
 
-</details>
+## Create a GitHub Organization
 
-## Create a GitHub PAT
+To be able to use GitHub in the lab, you will need to create a GitHub organization.
 
-To be able to use GitHub in the lab, you will need to create a GitHub Personal Access Token (PAT) with the following scopes:
+<div class="tip" data-title="Tip">
 
-- `repo` (Full control of private repositories)
-- `workflow` (Update GitHub Action workflow files)
-- `read:org` (Read-only access to organization, teams, and membership)
-- `write:org` (Read and write access to organization membership, organization projects, and team membership)
-- `admin:org` (Read and write access to organization membership, organization projects, and team membership)
-- `admin:public
-_key` (Full control of user public keys)
-- `admin:repo_hook` (Full control of repository hooks)
-- `admin:org_hook` (Full control of organization hooks)
+> Your team can collaborate on GitHub by using an organization account. Each person that uses GitHub signs into a user account. Multiple user accounts can collaborate on shared projects by joining the same organization account, which owns the repositories. A subset of these user accounts can be given the role of organization owner, which allows those people to granularly manage access to the organization’s resources using sophisticated security and administrative features.
 
-In GitHub, in the top right corner, click on your profile image, and then select Settings. On the left sidebar, select Developer settings > Personal access tokens > Fine-grained tokens, select Generate new token.
+</div>
 
-On the New fine-grained personal access token page, provide the following information:
+To create a GitHub organization, follow these steps:
 
-Set a descriptive name for the token, an expiration date to 30 days, and select the following permissions:
+1. Go to GitHub and sign in to your account.
+2. In the top right corner of the page, click on your profile picture, and then click on Your organizations.
+3. In the top right corner of the page, click on the New organization button.
+![github-org-profile](./assets/lab1-installbackstage/github-org-1.png)
+4. Fill in the following fields:
+   - **Organization name:** `Backstage-<your-github-username>`
+   - **Billing plan:** Free
+![github-org-free0org](./assets/lab1-installbackstage/github-org-2.png)
+5. Click on the **Create organization** button.
 
-In Repository access select All repositories, then expand Repository permissions, and for Contents, from the Access list, select Read Only.
+### Add People to the Organization
 
-Then click on Generate token. If you need more information on this mechanism you can refer to the official documentation.
+Now that you have created the organization, you will need to add yourself as a member of the organization. After the organization is created, you will be taken to the organization settings page. Here, you will see the **Organization name** and **Organization URL**. Copy these values and save them for later.
 
-Now, open the resource group deployed previously (it's name should start with *"rg-lab-we-hol"*) and open the Key Vault. In the **Secrets** tab, you will find a secret named `Pat`, click on it and then select **New Version** and update the value with your GitHub PAT:
+1. In the toolbar of the organization, click on **People**.
+2. In the **People** section, click on the **Invite member** button.
+![github-org-poeple](./assets/lab1-installbackstage/github-org-3.png)
+3. Fill in the following fields:
+   - **Email address:** <your email address>
+   - **Role:** Owner
+4. Click on the **Invite** button.
+![github-org-invite](./assets/lab1-installbackstage/github-org-4.png)
 
-![Key Vault Pat](assets/lab0-prerequisites/key-vault-pat.png)
+### Create a Team in the Organization
 
-[az-cli-install]: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+Finally, you will need to create a team in the organization.
+
+1. In the left sidebar, click on **Teams**.
+2. In the **Teams** section, click on the **New Team** button.
+![github-org-team](./assets/lab1-installbackstage/github-org-team.png)
+3. Fill in the following fields in the **Create a team** form:
+   - **Team name:** Platform Engineering Team
+   - **Description:** Platform Engineering team  
+   - **Visibility:** Visible
+   - **Team notifications:** Enabled
+4. Click on the **Create Team** button.
+5. Add yourself as a member of the team.
+5. Fill in the following fields in the **Create a team** form:
+   - **Team name:** Team A
+   - **Description:** Team A  
+   - **Visibility:** Visible
+   - **Team notifications:** Enabled
+6. Click on the **Create Team** button.
+7. Add yourself as a member of the team.
+
+<div class="tip" data-title="Tip">
+
+> You can create multiple teams in the organization. Each team can have its own set of repositories and permissions.
+
+</div>
+
+We have now created a GitHub organization and a team in the organization. We will use this organization and team to manage our GitHub resources.  
+
 [az-portal]: https://portal.azure.com
-[docker-desktop]: https://www.docker.com/products/docker-desktop/
-[git-client]: https://git-scm.com/downloads
 [github-account]: https://github.com/join
 [repo-fork]: https://github.com/azurenoops/pe-backstage-azure-workshop/fork
 [repo-clone]: https://github.com/azurenoops/pe-backstage-azure-workshop.git
 [vs-code]: https://code.visualstudio.com/
-[terraform-install]: https://learn.hashicorp.com/tutorials/terraform/install-cli
+[GitHub]: http://github.com
 
 ---
 
-# Lab 1 - Backstage as your IDP
+# Lab 1 - Install Backstage as your Internal Development Portal
 
-In this lab, we will initialize the standalone local Backstage app for the moment. [Backstage.io](https://backstage.io/) is a platform to build custom IDP (Internal Developer Portal). Spotify created it to give developers a single pane of glass to manage, develop, and explore the internal software ecosystem.
+In this lab, we will initialize the standalone local Backstage app for the moment. [Backstage.io](https://backstage.io/) is a platform to build custom `IDP (Internal Developer Portal)`. Spotify created it to give developers a single pane of glass to manage, develop, and explore the internal software ecosystem. This lab will take approximately `60 minutes` to complete.
 
 Out of the box, Backstage includes:
 
@@ -217,14 +237,19 @@ Out of the box, Backstage includes:
 
 In the later labs, we will add an external database to it and deploy it to Azure on the Control Plane cluster. As well as, do some configurarion to make it work with Azure and GitHub.
 
-## Step 1 - Validate Prereqs
+## Step 1 - Validate your Pre-requisites
 
 To get started, you will need to validate you have the following tools:
 
-- [Node.js](https://nodejs.org/en/download/) (LTS version)
-- [Yarn](https://yarnpkg.com/getting-started/install)
-- [Docker](https://www.docker.com/get-started)
-- [Git](https://git-scm.com/downloads)
+- [Node.js][nodejs] (LTS version)
+- [Yarn][yarn]
+- [Docker][docker-desktop]
+- [Git][git-client]
+
+[yarn]: https://yarnpkg.com/getting-started/install
+[nodejs]: https://nodejs.org/en/download/
+[docker-desktop]: https://www.docker.com/products/docker-desktop/
+[git-client]: https://git-scm.com/downloads
 
 Now that you cloned the repo, we can set up quickly with your own Backstage project you can create a Backstage App. We will run Backstage locally and configure the app.
 
@@ -236,25 +261,27 @@ To install the Backstage app, you need to run create-app from the @backstage pac
 
 <div class="task" data-title="Task">
 
+> Open VSCode and open a Bash (bash) terminal.
+
+</div>
+
+![open-pwsh](./assets/lab1-installbackstage/vscode-open-terminal.png)
+
+<div class="task" data-title="Task">
+
 > If the Backstage cli is not installed, you can install it by running the following command, If the cli is already installed, you can skip this step.
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
 npm install -g @backstage/cli
-```
+``` 
 
-</details>
+<div class="task" data-title="Task">
 
-When you get a prompt, you can choose to install the latest version of the Backstage cli. You can also choose to install a specific version by running the following command:
+> If you are prompted to install the latest version of the Backstage cli, type `y` and hit enter.
 
-<details>
-
-<summary>📚 Toggle solution</summary>
+</div>
 
 ```shell
 Need to install the following packages:
@@ -262,28 +289,17 @@ Need to install the following packages:
 Ok to proceed? (y) 
 ```
 
-Type `y` and hit enter to install the latest version of the Backstage cli.
-
-</details>
-
 </div>
 
 <div class="task" data-title="Task">
 
-> Now, in the PowerShell (pwsh) terminal in VSCode, run the following command:
+> Now, in the PowerShell (pwsh) terminal in VSCode, run the following command at the root of your project directory:
 
 </div>
-
-<details>
-
-<summary>📚 Toggle solution</summary>
 
 ```shell
 npx @backstage/create-app@latest
 ```
-
-</details>
-
 
 The wizard will ask you for the name of the app. Here you can enter the name of your Backstage application, which will also be the name of the directory. The default is backstage, which is fine for the purposes of the lab.
 
@@ -431,26 +447,36 @@ backstage/
   know
   Backstage.
 * **packages/backend/**: The backend for Backstage. This is where you can add your own backend logic.
+* **playwright.config.ts**: Configuration file for Playwright, a testing framework for web applications.
+* **tsconfig.json**: TypeScript configuration file.
+* **yarn.lock**: Yarn lock file for the project.
+* **README.md**: Readme file for the project.
+* **examples/**: Contains example entities and templates for the catalog.
+* **plugins/**: Contains plugins for the app.
 
-## Step 3 - Run the App
+<div class="task" data-title="Task">
+
+> Open the `backstage` directory in VSCode.
+
+</div>
+
+This is what the directory structure should look like in VSCode:
+
+![backstage-directory](./assets/lab1-installbackstage/backstage-directory.png)
+
+## Step 3 - Run Backstage
 
 As soon as the app is created, start by running the app.
 
 <div class="task" data-title="Task">
 
->Run the app by typing `cd backstage & yarn dev`
+>Run the app by typing `yarn dev`
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
-cd backstage && yarn dev
+yarn dev
 ```
-
-</details>
 
 This may take a little while. When successful, the message webpack compiled successfully will appear in your terminal.
 
@@ -481,32 +507,288 @@ In a standard installation, Backstage doesn’t use any kind of authentication. 
 
 ![backstage-guest](./assets/lab1-installbackstage/backstage-guest.png)
 
+<div class="tip" data-title="Tip">
+
+> Depending on how many times you use the app, the app may login automaticaly where you will not see the `Guest login`. In later labs, we will add authentication to the app.
+
+</div>
+
 When you click `Enter`, It should open up a new tab in the browser and should look like this (it will take some time to load the UI):
 
 ![backstage-home](./assets/lab1-installbackstage/backstage-home.png)
 
 The application is prefilled with demo data, so you can start exploring right away.
 
-## Step 4 - Configure the App
+## Step 4 - Configure Backstage
 
-Let's have a look on some of the values in the different files and change them to your needs. The main Backstage configuration file, `app-config.yaml` in the root directory of your Backstage app. Backstage also supports environment-specific configuration overrides, by way of an `app-config.<environment>.yaml` file such as `app-config.local.yaml`.
+Let's have a look on some of the values in the different files and change them to your needs. The main Backstage configuration file, **`app-config.yaml`** in the root directory of your `Backstage` app. `Backstage` also supports environment-specific configuration overrides, by way of an **`app-config.<environment>.yaml`** file such as **`app-config.local.yaml`** for local developement.
+
+To make it a bit cleaner for local development, we will copy the contents from **`app-config.yaml`** to **`app-config.local.yaml`** in the root directory of your `Backstage` app. This file will contain all the configuration settings for your `Backstage` app, including the organization name, the app title, and the backend URL.
 
 <div class="task" data-title="Task">
 
-> Open the `app-config.local.yaml` file in the root directory of your Backstage app (create if it doesn't exist), and change the organization name to a name of your choice.
+> Open the **`app-config.yaml`** file in the root directory of your Backstage app, and copy the contents to **`app-config.local.yaml`** file.
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+In the end, you should be left with two files like shown below:
 
+```yaml
+app-config.yaml
+# Backstage override configuration for your local development environment
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:3000
+
+organization:
+  name: My Company
+
+backend:
+  # Used for enabling authentication, secret is shared by all backend plugins
+  # See https://backstage.io/docs/auth/service-to-service-auth for
+  # information on the format
+  # auth:
+  #   keys:
+  #     - secret: ${BACKEND_SECRET}
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+    # Uncomment the following host directive to bind to specific interfaces
+    # host: 127.0.0.1
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
+    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  # This is for local development only, it is not recommended to use this in production
+  # The production database configuration is stored in app-config.production.yaml
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+  # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
+
+integrations:
+  github:
+    - host: github.com
+      # This is a Personal Access Token or PAT from GitHub. You can find out how to generate this token, and more information
+      # about setting up the GitHub integration here: https://backstage.io/docs/integrations/github/locations#configuration
+      token: ${GITHUB_TOKEN}
+    ### Example for how to add your GitHub Enterprise instance using the API:
+    # - host: ghe.example.net
+    #   apiBaseUrl: https://ghe.example.net/api/v3
+    #   token: ${GHE_TOKEN}
+
+proxy:
+  ### Example for how to add a proxy endpoint for the frontend.
+  ### A typical reason to do this is to handle HTTPS and CORS for internal services.
+  # endpoints:
+  #   '/test':
+  #     target: 'https://example.com'
+  #     changeOrigin: true
+
+# Reference documentation http://backstage.io/docs/features/techdocs/configuration
+# Note: After experimenting with basic setup, use CI/CD to generate docs
+# and an external cloud storage when deploying TechDocs for production use-case.
+# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+techdocs:
+  builder: 'local' # Alternatives - 'external'
+  generator:
+    runIn: 'docker' # Alternatives - 'local'
+  publisher:
+    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+
+auth:
+  # see https://backstage.io/docs/auth/ to learn about auth providers
+  providers:
+    # See https://backstage.io/docs/auth/guest/provider
+    guest: {}
+
+scaffolder:
+  # see https://backstage.io/docs/features/software-templates/configuration for software template options
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend process, typically `packages/backend`
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Local example template
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+    ## Uncomment these lines to add more example data
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+
+    ## Uncomment these lines to add an example org
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme-corp.yaml
+    #   rules:
+    #     - allow: [User, Group]
+  # Experimental: Always use the search method in UrlReaderProcessor.
+  # New adopters are encouraged to enable it as this behavior will be the default in a future release.
+  useUrlReadersSearch: true
+
+kubernetes:
+  # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
+
+# see https://backstage.io/docs/permissions/getting-started for more on the permission framework
+permission:
+  # setting this to `false` will disable permissions
+  enabled: true
+
+   ```
+
+```yaml
+app-config.local.yaml
+# Backstage override configuration for your local development environment
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:3000
+
+organization:
+  name: My Company
+
+backend:
+  # Used for enabling authentication, secret is shared by all backend plugins
+  # See https://backstage.io/docs/auth/service-to-service-auth for
+  # information on the format
+  # auth:
+  #   keys:
+  #     - secret: ${BACKEND_SECRET}
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+    # Uncomment the following host directive to bind to specific interfaces
+    # host: 127.0.0.1
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
+    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  # This is for local development only, it is not recommended to use this in production
+  # The production database configuration is stored in app-config.production.yaml
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+  # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
+
+integrations:
+  github:
+    - host: github.com
+      # This is a Personal Access Token or PAT from GitHub. You can find out how to generate this token, and more information
+      # about setting up the GitHub integration here: https://backstage.io/docs/integrations/github/locations#configuration
+      token: ${GITHUB_TOKEN}
+    ### Example for how to add your GitHub Enterprise instance using the API:
+    # - host: ghe.example.net
+    #   apiBaseUrl: https://ghe.example.net/api/v3
+    #   token: ${GHE_TOKEN}
+
+proxy:
+  ### Example for how to add a proxy endpoint for the frontend.
+  ### A typical reason to do this is to handle HTTPS and CORS for internal services.
+  # endpoints:
+  #   '/test':
+  #     target: 'https://example.com'
+  #     changeOrigin: true
+
+# Reference documentation http://backstage.io/docs/features/techdocs/configuration
+# Note: After experimenting with basic setup, use CI/CD to generate docs
+# and an external cloud storage when deploying TechDocs for production use-case.
+# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+techdocs:
+  builder: 'local' # Alternatives - 'external'
+  generator:
+    runIn: 'docker' # Alternatives - 'local'
+  publisher:
+    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+
+auth:
+  # see https://backstage.io/docs/auth/ to learn about auth providers
+  providers:
+    # See https://backstage.io/docs/auth/guest/provider
+    guest: {}
+
+scaffolder:
+  # see https://backstage.io/docs/features/software-templates/configuration for software template options
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend process, typically `packages/backend`
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Local example template
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+    ## Uncomment these lines to add more example data
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+
+    ## Uncomment these lines to add an example org
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme-corp.yaml
+    #   rules:
+    #     - allow: [User, Group]
+  # Experimental: Always use the search method in UrlReaderProcessor.
+  # New adopters are encouraged to enable it as this behavior will be the default in a future release.
+  useUrlReadersSearch: true
+
+kubernetes:
+  # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
+
+# see https://backstage.io/docs/permissions/getting-started for more on the permission framework
+permission:
+  # setting this to `false` will disable permissions
+  enabled: true
+
+```
+
+### Change the Organization Name
+
+<div class="task" data-title="Task">
+
+> Open the **`app-config.local.yaml`** file in the root directory of your `Backstage` app (create if it doesn't exist), and change the organization name to a name of your choice.
+
+</div>
 
 ```yaml
 organization:
   name: <your organization name>
 ```
-
-</details>
 
 <div class="tip" data-title="Tips">
 
@@ -514,7 +796,7 @@ organization:
 
 </div>
 
-Because we are still in the development mode, any changes to the `app-config.yaml` file will be reflected in the app as soon as you save the file. You can see the changes in the browser window.
+Because we are still in the development mode, any changes to the **`app-config.local.yaml`** file will be reflected in the app as soon as you save the file. You can see the changes in the browser window.
 
 <div class="warning" data-title="Warning">
 
@@ -522,158 +804,300 @@ Because we are still in the development mode, any changes to the `app-config.yam
 
 </div>
 
-### Add Azure Entra ID Authentication
+### Clearing Out Sample Data
 
-There are multiple authentication providers available for you to use with Backstage. For this tutorial we choose to use the Microsoft Entra ID plugin. This plugin allows you to authenticate users using Microsoft Entra ID.
+After we change the org name, we are left with a Backstage App with sample data (entities) that we clearly do not want to carry forward.
 
-### Configure App Registration on Azure
+The first steps are to delete the two Components that we created: `demo and tutorial`. We do this by navigating to the component and using the menu (upper-right) item Unregister entity.
 
-To add Microsoft Entra ID authentication to Backstage, you must create an App Registration in Azure Active Directory. This App Registration will be used to authenticate users using Microsoft Entra ID.
+![unregister-component](./assets/lab1-installbackstage/backstage-unregister-component.png)
 
-Depending on how locked down your company is, you may need a directory administrator to do some or all of these instructions.
+One interesting side effect of unregistering the Components is that the associated Location Entities (URLs) are also unregistered.
 
-Go to [Azure Portal > App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) and find your existing app registration, or create a new one. If you have an existing App Registration for Backstage, use that rather than create a new one.
+![unregister-entity](./assets/lab1-installbackstage/backstage-unregister-entity.png)
 
-On your app registration's overview page, add a new Web platform configuration, with the configuration:
+For completeness, we delete the GitHub Repository backing the tutorial Component.
 
-- Redirect URI: https://your-backstage.com/api/auth/microsoft/handler/frame (for local dev, typically http://localhost:7007/api/auth/microsoft/handler/frame)
-- Front-channel logout Url: blank
-- Implicit grant and hybrid flows: All unchecked
+At this point, however, we still have the initial sample data (entities) in our `Backstage` App. To get rid of most of the sample data (we will leave the Documentation Template Template in place for now), we update `app-config.yaml` as follows and delete the `catalog-info.yaml` file in the root directory.
 
-On the API permissions tab, click on Add Permission, then add the following Delegated permission for the Microsoft Graph API.
+```yaml
+catalog:
+  locations:
+    - type: url
+      target: https://github.com/backstage/software-templates/blob/main/scaffolder-templates/docs-template/template.yaml
+      rules:
+        - allow: [Template]
+```
 
-- email
-- offline_access
-- openid
-- profile
-- User.Read
+Starting the `Backstage` App with these changes, we can see that the sample data is no longer present; include Users and Groups. At this point there are only two entities: the **Documentation Template Template** and the **Location** associated with it.
 
-Optional custom scopes of the Microsoft Graph API defined in the app-config.yaml file.
-Your company may require you to grant admin consent for these permissions. Even if your company doesn't require admin consent, you may wish to do so as it means users don't need to individually consent the first time they access backstage. To grant admin consent, a directory admin will need to come to this page and click on the Grant admin consent for COMPANY NAME button.
+![backstage-docs-template](./assets/lab1-installbackstage/backstage-docs-template.png)
 
-<div class="tip" data-title="Tips">
+## Step 5 - Create a GitHub App
 
-> If you're using an existing app registration, and backstage already has a client secret, you can re-use that. If not, go to the Certificates & Secrets page, then the Client secrets tab and create a new client secret. Make a note of this value as you'll need it in the next section.
+To be able to use GitHub in the lab, you must create either a GitHub App or an OAuth App from the GitHub [developer settings](https://github.com/settings/developers). We will use the `backstage-cli` to create a GitHub App. This gives us a way to automate some of the work required to create a GitHub app.
 
-</div>
+### Create Environment Variables
 
-### Add the credentials to the configuration
-
-Backstage allows you to define configuration as code using the `app-config.local.yaml` file. This file contains all the configuration settings for your Backstage app, including the organization name, the app title, and the backend URL.
+Since we are using Backstage locally, secrets are used in the `app-config.local.yaml` file. This file is not checked into source control, so you can safely store your secrets here. In this lab, we will use `environments.sh` to manage our secrets.
 
 <div class="task" data-title="Task">
 
-> Open `app-config.local.yaml` we've created earlier. In the `Auth` configuration, add the below configuration and replace the values with the Client ID and the Client Secret from the App Registration.
+> Create a `environments.sh` file in the root directory of your Backstage app.
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+![environment-sh](./assets/lab1-installbackstage/environment-sh.png)
+
+<div class="task" data-title="Task">
+
+> Now, add it to the `.gitignore` file in the same folder
+
+</div>
+
+![environment-sh-gitignore](./assets/lab1-installbackstage/environment-sh-gitignore.png)
+
+This file will contain all the secrets for your local Backstage app, including the GitHub Client ID and Client Secret.
+
+We can set the environment variables and start the Backstage App using the following commands.
+
+```shell
+$ source environments.sh
+$ yarn dev
+```
+
+Going forward, when we start the Backstage App, we will use these commands. Now, let's create the GitHub App.
+
+#### Using the CLI (public GitHub only)
+
+To create an OAuth App on GitHub in your Organization, follow these steps:
+
+You can use the backstage-cli to create a GitHub App using a manifest file that we provide. This gives us a way to automate some of the work required to create a GitHub app.
+
+```shell
+yarn backstage-cli create-github-app <github org>
+```
+
+This command will guide you through the process of creating a GitHub App.
+
+<div class="tip" data-title="Tip">
+
+> You can also create a GitHub App using the GitHub UI. This is a good option if you are not comfortable using the command line.
+
+</div>
+
+<div class="task" data-title="Task">
+ 
+> You will be asked to provide the following information:
+</div>
+
+```shell
+Select 'A' for all permissions.
+```
+
+![github-app-cli](./assets/lab1-installbackstage/github-app-cli.png)
+
+A new window will open in your browser where you can create the GitHub App.
+
+<div class="tip" data-title="Tip">
+
+> You will get a login prompt. Log in to your GitHub account.
+
+</div>
+
+<div class="task" data-title="Task">
+ 
+> Fill in the form with the following values:
+</div>
+
+```shell
+GitHub App name: Backstage-'<'your org name'>'
+```
+
+![github-app-name](./assets/lab1-installbackstage/github-app-name.png)
+
+Once you've gone through the CLI command, it should produce a YAML file in the root of the project which you can then use as an include in your `github-app-config.yaml`.
+
+![github-app-name](./assets/lab1-installbackstage/github-app-creds.png)
+
+<div class="task" data-title="Task">
+
+> Open the `github-app-config.yaml` file in the root directory of your Backstage app, and copy the contents to `environments.sh` file using the PWSH cmd prompt.
+
+</div>
+
+```shell
+export "GITHUB_APP_ID=<your-github-app-id>" & echo "GITHUB_APP_ID=<your-github-app-id>" >> environments.sh
+export "GITHUB_CLIENT_ID=<your-github-client-id>" & echo "GITHUB_APP_PRIVATE_KEY=<your-github-app-private-key>" >> environments.sh
+export "GITHUB_CLIENT_SECRET=<your-github-client-secret>" & echo "GITHUB_CLIENT_SECRET=<your-github-client-secret>" >> environments.sh
+```
+
+<div class="tip" data-title="Tip">
+
+> You will get errors if you do not have the `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, and `GITHUB_CLIENT_SECRET` in your `environments.sh` file and you have not exported them.
+
+</div>
+
+<div class="task" data-title="Task">
+
+> You can delete the `github-app-config.yaml` file. We will use the `environments.sh` file to manage our secrets.
+
+</div>
+
+### Configuring GitHub App permissions
+
+Next, we need to conmfigure permissions on our GitHub App. The GitHub App permissions can be configured in the GitHub App settings. Which is located at `https://github.com/organizations/{ORG}/settings/apps/{APP_NAME}/permissions` or clicking on the `Permissions & events` tab in the GitHub App settings.
+
+<div class="task" data-title="Task">
+
+> In the GitHub App settings, click on the `App Settings` button at the top right corner of the page.
+
+</div>
+
+![github-app-settings](./assets/lab1-installbackstage/github-app-settings.png)
+
+<div class="task" data-title="Task">
+
+> In the GitHub App settings, click on the `Permissions & events` tab.
+
+</div>
+
+![github-app-permissions](./assets/lab1-installbackstage/github-app-permissions.png)
+
+<div class="task" data-title="Task">
+
+> Add the permissions required for the GitHub App to work with Backstage are:
+
+</div>
+
+**Repository permissions:**
+
+- **Contents:** Read-only
+- **Commit statuses:** Read-only
+
+**Organization permissions:**
+
+- **Members:** Read-only
+
+**Account permissions:**
+
+- **Administration:** Read & write (for creating repositories)
+- **Contents:** Read & write
+- **Metadata:** Read-only
+- **Pull requests:** Read & write
+- **Issues:** Read & write
+- **Workflows:** Read & write
+- **Variables:** Read & write
+- **Secrets:** Read & write
+- **Environments:** Read & write
+
+<div class="tip" data-title="Tip">
+
+> App permissions is not managed by Backstage. They’re created with some simple default permissions which you are free to change as you need, but you will need to update them in the GitHub web console, not in Backstage right now. The permissions that are defaulted are metadata:read and contents:read.
+
+</div>
+
+## Step 6 - Add GitHub Authentication to Backstage
+
+There are multiple authentication providers available for you to use with Backstage. In this section of the lab, we will add GitHub authentication to Backstage. This will allow users to sign in to Backstage using GitHub authentication provider that can authenticate users using GitHub or GitHub Enterprise OAuth.
+
+<div class="tip" data-title="Tip">
+
+> We are using GitHub authentication provider for the lab. You can use other authentication providers as well, such as Google, Microsoft Entra ID, and Okta.
+
+</div>
+
+<div class="task" data-title="Task">
+
+> Open the `app-config.local.yaml` file in the root directory of your Backstage app, and add the following configuration to the `auth` section.
+
+</div>
 
 ```yaml
 auth:
   environment: development
   providers:
-    microsoft:
+    github:
       development:
-        clientId: <AZURE_CLIENT_ID> # found on App Registration > Overview
-        clientSecret:  <AZURE_CLIENT_SECRET> # found on App Registration > Certificates & secrets
-        tenantId: <AZURE_TENANT_ID> # found on App Registration > Overview
-        domainHint: <AZURE_TENANT_ID> # typically the same as tenantId
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        ## uncomment if using GitHub Enterprise
+        # enterpriseInstanceUrl: ${GITHUB_ENTERPRISE_INSTANCE_URL}
+        ## uncomment to set lifespan of user session
+        # sessionDuration: { hours: 24 } # supports `ms` library format (e.g. '24h', '2 days'), ISO duration, "human duration" as used in code
         signIn:
           resolvers:
-            # See https://backstage.io/docs/auth/microsoft/provider#resolvers for more resolvers
-            - resolver: userIdMatchingUserEntityAnnotation
+            # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers
+            - resolver: usernameMatchingUserEntityName
 ```
 
-</details>
+This configuration will add GitHub authentication to Backstage.
 
-Backstage will re-read the configuration. If there's no errors, that's great! We can continue with the last part of the configuration.
+<div class="tip" data-title="Tip">
 
-<div class="tip" data-title="Tips">
-
-> You can define configuration settings for different environments by creating separate configuration files for each environment. For example, you can create an `app-config.local.yaml` file for local development and an `app-config.production.yaml` file for production.
+> The clientId and clientSecret are the values that you copied to the `environment.sh` file. The `${}` syntax is used to reference the environment variables in the `environment.sh` file.
 
 </div>
 
-The Microsoft provider is a structure with three mandatory configuration keys:
+The GitHub Auth provider is a structure with these configuration keys:
 
-- **clientId:** Application (client) ID, found on App Registration > Overview
-- **clientSecret:** Secret, found on App Registration > Certificates & secrets
-- **tenantId:** Directory (tenant) ID, found on App Registration > Overview
-- **domainHint (optional):** Typically the same as tenantId. Leave blank if your app - registration is multi tenant. When specified, this reduces login friction for - users with accounts in multiple tenants by automatically filtering away accounts from other tenants. For more details, see Home Realm Discovery
-- **additionalScopes (optional):** List of scopes for the App Registration, to be requested in addition to the required ones.
-- **skipUserProfile (optional):** If true, skips loading the user profile even if the User.Read scope is present. This is a performance optimization during login and can be used with resolvers that only needs the email address in spec.profile.email obtained when the email OAuth2 scope is present.
+- **clientId:** The client ID that you generated on GitHub, e.g. b59241722e3c3b4816e2
+- **clientSecret:** The client secret tied to the generated client ID.
+- **enterpriseInstanceUrl (optional):** The base URL for a GitHub Enterprise instance, e.g. https://ghe.<company>.com. Only needed for GitHub Enterprise.
+- **callbackUrl (optional):** The callback URL that GitHub will use when initiating an OAuth flow, e.g. https://your-intermediate-service.com/handler. Only needed if Backstage is not the immediate receiver (e.g. one OAuth app for many backstage instances).
+- **signIn:** The configuration for the sign-in process, including the resolvers that should be used to match the user from the auth provider with the user entity in the Backstage catalog (typically a single resolver is sufficient).
+
+#### GitHub Resolvers
 
 This provider includes several resolvers out of the box that you can use:
 
 - **emailMatchingUserEntityProfileEmail:** Matches the email address from the auth provider with the User entity that has a matching spec.profile.email. If no match is found it will throw a NotFoundError.
 - **emailLocalPartMatchingUserEntityName:** Matches the local part of the email address from the auth provider with the User entity that has a matching name. If no match is found it will throw a NotFoundError.
-- e**mailMatchingUserEntityAnnotation:** Matches the email address from the auth provider with the User entity where the value of the microsoft.com/email annotation matches. If no match is found it will throw a NotFoundError.
-- **userIdMatchingUserEntityAnnotation:** Matches the user profile ID from the auth provider with the User entity where the value of the graph.microsoft.com/user-id annotation matches. This resolver is recommended to resolve users without an email in their profile. If no match is found it will throw a NotFoundError.
+- **usernameMatchingUserEntityName:** Matches the username from the auth provider with the User entity that has a matching name. If no match is found it will throw a NotFoundError.
 
-### Add Backend Integration
+<div class="tip" data-title="Tip">
 
-To add the backend integration to the Backstage app, you will need to install the `@backstage/plugin-auth-backend-module-microsoft-provider` package. This package provides the backend integration for Microsoft Entra ID.
-
-<div class="task" data-title="Task">
-
-> To install the package, run the following command from the root directory of your Backstage app.
+> If you want to more about resolvers, you can check the [documentation](https://backstage.io/docs/auth/github/provider#resolvers).
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+### Add Backend Installation
 
-```shell
-yarn --cwd packages/backend add @backstage/plugin-auth-backend-module-microsoft-provider
-```
-
-</details>
+We need to install the backend module for GitHub authentication. This module is not installed by default, therefore you have to add **@backstage/plugin-auth-backend-module-github-provider** to your backend package.
 
 <div class="task" data-title="Task">
 
-> Then we will need to this line in **packages/backend/src/index.ts**.
+> We will first need to install the package by running this command from your Backstage root directory:
 
 </div>
-
-<details>
-<summary>📚 Toggle solution</summary>
 
 ```typescript
-backend.add(import('@backstage/plugin-auth-backend-module-microsoft-provider'));
+yarn --cwd packages/backend add @backstage/plugin-auth-backend-module-github-provider
 ```
-</details>
-
-### Add Frontend Integration
-
-To add the frontend integration to the Backstage app, you will need to add a Signin Page. This page will allow users to sign in to the app using Microsoft Entra ID.
-
-Sign-in is configured by providing a custom SignInPage app component. It will be rendered before any other routes in the app and is responsible for providing the identity of the current user. The SignInPage can render any number of pages and components, or just blank space with logic running in the background.
-
-In the end, however, it must provide a valid Backstage user identity through the onSignInSuccess callback prop, at which point the rest of the app is rendered.
-
-<div class="tip" data-title="Tips">
-
-> This next step is where you will do some coding. You will need to add the SignInPage to the app.
-
-</div>
 
 <div class="task" data-title="Task">
 
-> We will need to add this line in **packages/app/src/App.tsx** in the `components` section.
+> Then we will need to this line in the backend `packages/backend/src/index.ts` file in the backstage root directory:
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+```typescript
+backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
+```
+
+### Adding the GitHub provider to the Backstage frontend
+
+We need to add the GitHub provider to the Backstage frontend. This will allow users to sign in to Backstage using GitHub authentication provider that can authenticate users using GitHub or GitHub Enterprise OAuth.
+
+<div class="task" data-title="Task">
+
+> We will first need to install the package by running this command from packages/app/src/App.tsx:
+
+</div>
 
 ```typescript
-// This is going in the imports section
-import { microsoftAuthApiRef } from '@backstage/core-plugin-api';
-import { SignInPage } from '@backstage/core-components';
+import { githubAuthApiRef } from '@backstage/core-plugin-api';
 
-// This is going in the components section
 const app = createApp({
  components: {
     SignInPage: props => (
@@ -681,10 +1105,10 @@ const app = createApp({
         {...props}
         auto
         provider={{
-          id: 'microsoft-auth-provider',
-          title: 'Microsoft',
-          message: 'Sign in using Microsoft',
-          apiRef: microsoftAuthApiRef,
+          id: 'github-auth-provider',
+          title: 'GitHub',
+          message: 'Sign in using GitHub',
+          apiRef: githubAuthApiRef,
         }}
       />
     ),
@@ -693,86 +1117,182 @@ const app = createApp({
 });
 ```
 
-</details>
+<div class="tip" data-title="Tip">  
 
-## Step 5 - Adding Entra ID Organizational Data
-
-The Azure provider can also be configured to fetch organizational data from Azure Entra ID. This data can be used to filter the users that are allowed to sign in to Backstage.
-
-This can be done by adding the **@backstage/plugin-catalog-backend-module-msgraph** package to your backend.
-
-### Backend Installation
-
-The package is not installed by default, therefore you have to add **@backstage/plugin-catalog-backend-module-msgraph** to your backend package.
-
-<div class="task" data-title="Task">
-
-> Run the following command from your **Backstage root directory**.
+> You can configure sign-in to use a redirect flow with no pop-up by adding enableExperimentalRedirectFlow: true to the root of your app-config.yaml
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+### Validate GitHub Login
 
-```typescript
-yarn --cwd packages/backend add @backstage/plugin-catalog-backend-module-msgraph
+Now if you have done everything correctly,, that you have added the GitHub authentication to your Backstage app, you can validate the app by running the app.
+
+<div class="task" data-title="Task">
+
+> Run the following command from your **Backstage root directory**:
+</div>
+
+```shell
+yarn dev
 ```
 
-</details>
+This will start the Backstage app and open a new tab in your browser. You should see the Backstage app with the GitHub authentication provider.
+
+![backstage-login-entra](./assets/lab1-installbackstage/backstage-login-github.png)
+
+Accept the permissions and you should be redirected to the Backstage app.
+
+![backstage-home](./assets/lab1-installbackstage/backstage-accept-perms-github.png)
+
+After the accepting the permissions, you should see the Backstage app could not find any entities. This is because we have not added any entities to the Backstage app yet.
+
+![backstage-home](./assets/lab1-installbackstage/backstage-login-github-error.png)
+
+We will add entities and organization data to the Backstage app in the next step.
+
+## Step 7 - Add GitHub Org Data
+
+In this step, we will add GitHub Org data to Backstage. This will allow users to see the GitHub Org data in Backstage.
+
+We will use an GitHub PAT (Personal Access Token) to access the GitHub API on behalf of the user. This is used to create a new user in Backstage if the user does not exist. 
+
+### Create a GitHub PAT
+
+To be able to use GitHub in the lab, you will need to create a GitHub Personal Access Token (PAT) with the following scopes:
+
+- `repo` (Full control of private repositories)
+- `workflow` (Update GitHub Action workflow files)
+- `read:org` (Read-only access to organization, teams, and membership)
+- `write:org` (Read and write access to organization membership, organization projects, and team membership)
+- `admin:org` (Read and write access to organization membership, organization projects, and team membership)
+- `admin:public
+_key` (Full control of user public keys)
+- `admin:repo_hook` (Full control of repository hooks)
+- `admin:org_hook` (Full control of organization hooks)
+
+In GitHub, in the top right corner, click on your profile image, and then select Settings. On the left sidebar, select Developer settings > Personal access tokens > Fine-grained tokens, select Generate new token.
+
+On the New fine-grained personal access token page, provide the following information:
+
+Set a descriptive name for the token, an expiration date to 30 days, and select the following permissions:
+
+In Repository access select All repositories, then expand Repository permissions, and for Contents, from the Access list, select Read Only.
+
+Then click on Generate token. If you need more information on this mechanism you can refer to the official documentation.
+
+### Add the GitHub PAT to your environment
 
 <div class="task" data-title="Task">
 
-> Next add the basic configuration to the **app-config.yaml** file.
+> Open the `environment.sh` file in the root directory of your Backstage app, and add the following configuration to the `environment.sh` file.
+</div>
+
+```shell
+echo "GITHUB_TOKEN=<your-github-pat>" >> environment.sh
+export "GITHUB_TOKEN=<your-github-pat>"
+```
+
+This will add the GitHub PAT to your environment.
+
+### Add the GitHub PAT to Backstage
+
+Now, we will add the GitHub PAT to the Backstage app configuration.
+
+<div class="task" data-title="Task">
+
+> Open the `app-config.local.yaml` file in the root directory of your Backstage app, and add the following configuration to the `integrations` section.
+</div>
+
+```yaml
+integrations:
+  github:
+    - host: github.com
+      # This is a Personal Access Token or PAT from GitHub. You can find out how to generate this token, and more information
+      # about setting up the GitHub integration here: https://backstage.io/docs/integrations/github/locations#configuration
+      token: ${GITHUB_TOKEN}
+```
+
+This will add the GitHub PAT to Backstage.
+
+<div class="tip" data-title="Tip">
+
+> Please note that the credentials file is highly sensitive and should NOT be checked into any kind of version control. Instead use your preferred secure method of distributing secrets.
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
+### Add GitHub Org Data to Backstage
+
+Now, we will add GitHub Org data to Backstage. This will allow users to see the GitHub Org data in Backstage.
+
+<div class="task" data-title="Task">
+
+> Start by installing the GitHub Org plugin by running the following command from your Backstage root directory:
+</div>
+
+```shell
+yarn --cwd packages/backend add @backstage/plugin-catalog-backend-module-github-org
+```
+
+<div class="task" data-title="Task">
+
+> Then we will need to this line in the backend `packages/backend/src/index.ts` file in the backstage root directory:
+</div>
+
+```typescript
+backend.add(import('@backstage/plugin-catalog-backend-module-github-org'));
+```
+
+<div class="task" data-title="Task">
+
+> Open the `app-config.local.yaml` file in the root directory of your Backstage app, and add the following configuration to the `catalog` section.
+
+</div>
 
 ```yaml
 catalog:
   providers:
-    microsoftGraphOrg:
-      default:
-        tenantId: ${AZURE_TENANT_ID}
-        user:
-          filter: accountEnabled eq true and userType eq 'member'
-        group:
-          filter: >
-            securityEnabled eq false
-            and mailEnabled eq true
-            and groupTypes/any(c:c+eq+'Unified')
-        schedule:
-          frequency: PT1H
-          timeout: PT50M
+    githubOrg:
+      id: development
+      githubUrl: https://github.com
+      orgs: ['<Your GitHub Org>']
+      schedule:
+        initialDelay: { seconds: 30 }
+        frequency: { hours: 1 }
+        timeout: { minutes: 50 }
 ```
 
-</details>
-
-<div class="tip" data-title="Tips">
-
-> For large organizations, this plugin can take a long time, so be careful setting low frequency / timeouts and importing a large amount of users / groups for the first try.
-
-<div>
+Next, we will update the entities.yaml file in the examples directory to include the GitHub Org data.
 
 <div class="task" data-title="Task">
 
-> Finally, update your backend by adding to **packages/backend/src/index.ts**  following line.
+> Open the `examples/org.yaml` file in the root directory of your Backstage app, and add the following configuration to the `org.yaml` file.
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
-
-```typescript
-backend.add(import('@backstage/plugin-catalog-backend-module-msgraph'));
+```yaml
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: Platform Engineering
+spec:
+  type: team
+  children: []
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-user
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: <your-github-username>
+spec:
+  memberOf: [Platform Engineering]
+---
 ```
 
-</details>
+### Validate GitHub Org Data
 
-### Validate Entra ID Login
-
-Now, that you have added the Microsoft Entra ID authentication to your Backstage app, you can validate the app by running the app.
+Now, we will validate the GitHub Org data in Backstage.
 
 <div class="task" data-title="Task">
 
@@ -780,42 +1300,93 @@ Now, that you have added the Microsoft Entra ID authentication to your Backstage
 
 </div>
 
-<details>
-<summary>📚 Toggle solution</summary>
-
 ```shell
 yarn dev
 ```
 
-</details>
+This will start the Backstage app and open a new tab in your browser. You should see the Backstage app with the GitHub Org data.
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org.png)
+
+## Step 8 - Submit PR to GitHub
+
+Now that you have added GitHub Org data to Backstage, you can submit a PR to GitHub. This is a good practice to follow when working with source code. Normally, we don't want to push changes directly to the main branch but for the purpose of this lab, we will push the changes directly to the main branch.
 
 <div class="task" data-title="Task">
 
-> Then open a browser and navigate to `http://localhost:3000`.
+> Go to `Source Control` tab in VSCode, and right click on the `Changes` and click on `Stage All Changes`.
 
 </div>
 
-You should see the Backstage app with the Microsoft Entra ID authentication.
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-staged.png)
 
-![backstage-login-entra](./assets/lab1-installbackstage/backstage-login-entra.png)
-You have completed the first lab. You have created a new Backstage app, explored the app, added Entra ID authentication, and set up the local development environment.
+<div class="task" data-title="Task">
 
-In the later parts of this lab series, we will be :
+> Then add in a commit message and click on `Commit`.
+</div>
 
-- Deploying the Control Plane cluster on Azure Kubernetes Service (AKS)
-- Configuring tech-docs and integrating our documents with Backstage (using docker).
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-commit.png)
+
+<div class="task" data-title="Task">
+
+> Now go your repository in Github and click on `Pull Requests` tab.
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-push.png)
+
+<div class="task" data-title="Task">
+
+> Then click on `New Pull Request` button.
+
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-pr.png)
+
+<div class="task" data-title="Task">
+
+
+
+You have completed the first lab. You have created a new Backstage app, explored the app, configured the app, and added GitHub authentication to Backstage. You have also added GitHub Org data to Backstage.
+
+In the next lab, we will focus on Day 1 operations, deploying the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform.
 
 ---
 
 # Lab 2 - Deploy Control Plane cluster on Azure
 
-In this lab, we will deploy the Control Plane cluster on Azure Kubernetes Service (AKS). We will use Terraform to define the infrastructure as code for the deployment of Backstage on Azure.
+Mastering both Day 1 and Day 2 operations is crucial for platform, and DevOps engineers to ensure smooth operations in platform engineering.
 
-## Step 1 - Validate you Pre-requisites
+Day 1 operations involve the initial setup and configuration of the platform, while Day 2 operations focus on maintenance, updates, responding to incidents, and scaling. We will focus on Day 1 operations in this lab. Setting up the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform. The Platform Engineering team is responsible for both Day 1 and Day 2 operations of the platform.
+
+To introduce you to the components, the following diagram shows the architecture of the Control Plane cluster. This lab will take approximately 40 minutes to complete.
+
+![Control Plane Architecture](./assets/lab2-controlplane/control-plane-architecture.png)
+
+## Step 1 - Validate your Pre-requisites
+
+To get started, you will need to validate you have the following tools:
+
+- [Terraform][terraform-install]
+- [Azure CLI][az-cli-install]
+- [kubectl][kubectl-install]
+- [Helm][helm-install]
+
+[az-cli-install]: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+[terraform-install]: https://learn.hashicorp.com/tutorials/terraform/install-cli
+[kubectl-install]: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+[helm-install]: https://helm.sh/docs/intro/install/
 
 ## Step 2 - Provision the Control Plane Cluster
 
-With the repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `terraform/aks` folder. The Terraform files contains all resources you need, including an AKS cluster, Crossplane, and ArgoCD.
+In this step, we will provision the Control Plane cluster on Azure Kubernetes Service (AKS), with addons Crossplane, and ArgoCD using Terraform. The Control Plane cluster is the foundation of the platform and is used to manage the day 2 operations of the platform. Since we are provisoning the Control Plane, this is Day 1 operations. In later labs, we will focus on Day 2 operations.
+
+With the lab repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `terraform/aks` folder. The Terraform files contains all resources you need, including an AKS cluster, Crossplane, and ArgoCD.
+
+<div class="tip" data-title="Tip">
+
+> To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
+
+</div>
 
 <div class="task" data-title="Task">
 
@@ -823,15 +1394,24 @@ With the repository that you cloned in Lab 1, it comes with a pre-defined Terraf
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
 cd terraform/aks
 ```
 
-</details>
+<div class="task" data-title="Task">
+
+> Update the resource group name in the `locals.tf` file located in the `terraform/aks` folder with your initials.
+</div>
+
+```shell
+locals {
+  ---taken out for brevity---
+
+  resource_group_name = "${var.resource_group_name}-<your intitals>"
+  
+  ---taken out for brevity---
+}
+```
 
 <div class="task" data-title="Task">
 
@@ -839,15 +1419,9 @@ cd terraform/aks
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
 terraform init
 ```
-
-</details>
 
 <div class="task" data-title="Task">
 
@@ -855,31 +1429,9 @@ terraform init
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
 terraform validate
 ```
-
-</details>
-
-<div class="task" data-title="Task">
-
-> Then run the following command to plan the Terraform configuration:
-
-</div>
-
-<details>
-
-<summary>📚 Toggle solution</summary>
-
-```shell
-terraform plan -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane 
-```
-
-</details>
 
 <div class="task" data-title="Task">
 
@@ -887,15 +1439,15 @@ terraform plan -var gitops_addons_org=https://github.com/azurenoops -var infrast
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
-terraform apply --auto-approve
+terraform apply -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane --auto-approve
 ```
 
-</details>
+<div class="warning" data-title="Warning">
+
+>Note: You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
+
+</div>
 
 <div class="tip" data-title="Tips">
 
@@ -911,40 +1463,49 @@ Now that the AKS cluster is provisioned, you can access the ArgoCD UI to manage 
 
 ## Step 3 - Validate the Cluster is working
 
-To access the AKS cluster, you need to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform.
+Let's validate that the cluster is working. To access the AKS cluster, you need to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform. But first. we need make sure we can get to the AKS cluster.
+
+As the result, you should see the `kubeconfig` file generated by Terraform in the `terraform/aks` folder. We will use this file to access the AKS cluster. Let's validate that the cluster is working.
 
 <div class="task" data-title="Task">
 
-> To set the KUBECONFIG environment variable, run the following command:
-
+> Run the following command to access the AKS cluster:
 </div>
-
-<details>
-
-<summary>📚 Toggle solution</summary>
 
 ```shell
-export KUBECONFIG=<your_path_to_this_repo>/pe-backstage-azure-workshop/terraform//aks/kubeconfig
-echo $KUBECONFIG
+az aks browse --resource-group <your resource group> --name <your aks cluster name>
 ```
 
-</details>
-
-To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
+This command will open the Kubernetes dashboard in your browser.
 
 <div class="task" data-title="Task">
- 
-> To validate that the cluster is working, you can run the following command to get the list of pods running on the cluster
+
+> Run the following commands to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform.
 
 </div>
 
-<details>
+```shell
+export KUBECONFIG=<path to file>/kubeconfig
+```
 
-<summary>📚 Toggle solution</summary>
+<div class="tip" data-title="Tip">
+
+> Remember to replace `<path to file>` with the full path to the `kubeconfig` file generated by Terraform.
+
+</div>
+
+To validate that the cluster is working, you can run the following command to get the list of pods running on the cluster.
+
+<div class="task" data-title="Task">
+
+> Run the following command.
+
+</div>
 
 ```shell
 kubectl get pods --all-namespaces
 ```
+
 You should see the following pods running on the cluster:
 
 ```shell
@@ -1000,27 +1561,110 @@ kube-system         metrics-server-5dfc656944-rm2md                             
 kube-system         retina-agent-pw88n                                                1/1     Running   0                 46h
 ```
 
-</details>
+If you see the pods running, then the cluster is working. Next, we will access the ArgoCD UI to manage the applications deployed on the cluster.
 
 ## Step 4 - Accessing the Control Plane Cluster and ArgoCD UI
 
-To access the Control Plane cluster, We will use kubectl to access the cluster. You can use the following commands to get the initial admin password, the IP address of the ArgoCD web interface and forward the port to access the ArgoCD UI.
+To access the Control Plane cluster, you will need to configure the kubectl context to point to the AKS cluster.
 
 <div class="task" data-title="Task">
 
-> Then you can run the following command to get the initial admin password of the ArgoCD web interface.
-
+> Then run the following command to get the IP address of the ArgoCD web interface:
 </div>
 
-<details>
+```shell
+kubectl get svc -n argocd argo-cd-argocd-server
+```
 
-<summary>📚 Toggle solution</summary>
+You should see the following output:
+
+```shell
+NAME                     TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+argo-cd-argocd-server   ClusterIP      10.0.89.227     <none>          8081/TCP         38m
+```
+
+<div class="warning" data-title="Warning">
+
+> As you can see, the External IP has not been assigned yet. It may take a few minutes for the LoadBalancer to create a public IP for the ArgoCD UI after the Terraform apply. We will need to list the services again to get the public IP, if it is not assigned yet, we will need to assign it manually.
+</div>
+
+<div class="task" data-title="Task">
+
+> To check the resources created, you can run the following command. Again, be sure to use the namespace name you created is `argocd`.
+</div>
+
+```shell
+kubectl get all -n argocd
+```
+
+You should see the following output:
+
+```shell
+NAME                                                              READY   STATUS    RESTARTS          AGE
+pod/argo-cd-argocd-application-controller-0                     1/1     Running   0          38m
+pod/argo-cd-argocd-applicationset-controller-677fd74987-m22gn   1/1     Running   0          38m
+pod/argo-cd-argocd-dex-server-85f5db5458-kqv9s                  1/1     Running   0          38m
+pod/argo-cd-argocd-notifications-controller-6cf884fb7f-pljhc    1/1     Running   0          38m
+pod/argo-cd-argocd-redis-6c766746d8-8k2lj                       1/1     Running   0          38m
+pod/argo-cd-argocd-repo-server-7c96b84946-xqrnz                 1/1     Running   0          38m
+pod/argo-cd-argocd-server-78498f46f6-qrfs9                      1/1     Running   0          38m
+
+NAME                                               TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                      AGE
+service/argo-cd-argocd-applicationset-controller   ClusterIP      10.0.180.20   <none>          7000/TCP                     38m
+service/argo-cd-argocd-dex-server                  ClusterIP      10.0.142.54   <none>          5556/TCP,5557/TCP            38m
+service/argo-cd-argocd-redis                       ClusterIP      10.0.90.173   <none>          6379/TCP                     38m
+service/argo-cd-argocd-repo-server                 ClusterIP      10.0.89.227   <none>          8081/TCP                     38m
+service/argo-cd-argocd-server                      ClusterIP      10.0.85.130   <none>          80:31650/TCP,443:30158/TCP   38m
+
+NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/argo-cd-argocd-applicationset-controller   1/1     1            1           38m
+deployment.apps/argo-cd-argocd-dex-server                  1/1     1            1           38m
+deployment.apps/argo-cd-argocd-notifications-controller    1/1     1            1           38m
+deployment.apps/argo-cd-argocd-redis                       1/1     1            1           38m
+deployment.apps/argo-cd-argocd-repo-server                 1/1     1            1           38m
+deployment.apps/argo-cd-argocd-server                      1/1     1            1           38m
+
+NAME                                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/argo-cd-argocd-applicationset-controller-677fd74987   1         1         1       38m
+replicaset.apps/argo-cd-argocd-dex-server-85f5db5458                  1         1         1       38m
+replicaset.apps/argo-cd-argocd-notifications-controller-6cf884fb7f    1         1         1       38m
+replicaset.apps/argo-cd-argocd-redis-6c766746d8                       1         1         1       38m
+replicaset.apps/argo-cd-argocd-repo-server-7c96b84946                 1         1         1       38m
+replicaset.apps/argo-cd-argocd-server-78498f46f6                      1         1         1       38m
+
+NAME                                                     READY   AGE
+statefulset.apps/argo-cd-argocd-application-controller   1/1     38m
+```
+
+As you can see, the `Argo CD API server service(service/argo-cd-argocd-server)` is not exposed by default; this means it is configured with a Cluster IP and not a Load Balancer. To access the API server you will have to do the following:
+
+- Expose the API server with a Load Balancer
+- Use the kubectl proxy command to access the API server
+- Use the kubectl port-forward command to access the API server
+
+To expose the API server with a Load Balancer, you can run the following command:
+
+```shell
+kubectl patch svc argo-cd-argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: It will take a few minutes for the LoadBalancer to append an external IP to the service. If you want to check the status of the service, you can run the following command again.
+
+```shell
+kubectl get all -n argocd
+```
+</div>
+
+<div class="task" data-title="Task">
+
+> Run the following command to get the initial admin password of the ArgoCD web interface:
+</div>
 
 ```shell
 kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .data.password | base64decode}}"
 ```
-
-</details>
 
 <div class="tip" data-title="Tip">
 
@@ -1028,67 +1672,485 @@ kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .d
 
 </div>
 
-When you run the above command, you will get the initial admin password for the ArgoCD UI. You can use this password to log in to the ArgoCD UI.
-
 <div class="task" data-title="Task">
 
-> Then run the following command to get the IP address of the ArgoCD web interface.
+> Now let's use the kubectl port-forward command to access the API server:
 
 </div>
 
-<details>
-
-<summary>📚 Toggle solution</summary>
-
 ```shell
-kubectl get svc -n argocd argo-cd-argocd-server
+kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:443
 ```
 
-</details>
-
-It may take a few minutes for the LoadBalancer to create a public IP for the ArgoCD UI after the Terraform apply. In case something goes wrong and you don't find a public IP, 
-
-<div class="task" data-title="Task">
-
-> Connect to the ArgoCD server doing a port forward with kubectl and access the UI on https://localhost:8080.
-
-</div>
-
-<details>
-
-<summary>📚 Toggle solution</summary>
+You should see the following output:
 
 ```shell
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
 ```
 
-</details>
-
-You can now access the ArgoCD UI using the IP address and the initial admin password. You can use the following URL to access the ArgoCD UI:
+You can now access the ArgoCD UI using the following URL:
 
 ```shell
-https://localhost:8080
+http://localhost:8080
 ```
 
 <div class="tip" data-title="Tips">
 
-> Note: The username for the ArgoCD UI login is `admin`
+> Note: The username for the ArgoCD UI login is `admin`. You can use the initial admin password to log in to the ArgoCD UI.
 
 </div>
+
+You can now access the ArgoCD UI using url and you will see the ArgoCD login page. You can now access the ArgoCD UI using the `admin` username and the initial `admin` password.
 
 ![ArgoCD-login](./assets/lab2-controlplane/argocd-login.png)
 
-Now that you logged in to the ArgoCD UI using the initial admin password. You should see the ArgoCD UI with the list of applications deployed on the cluster.
+Once you log in to the ArgoCD UI, you will see the ArgoCD dashboard.
 
 ![ArgoCD-dashboard](./assets/lab2-controlplane/argocd-dashboard.png)
 
-<div class="tip" data-title="Tips">
+Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster.
 
-> Note: You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
+Let's add our local instance of Backstage to ArgoCD and the Control Plane cluster.
+
+## Step 5 - Create a Azure Container Registry
+
+In this step, we will create an Azure Container Registry (ACR) to store the Docker images for our local instance Backstage app. The Control Plane Kubernetes cluster will pull the Docker images from the ACR. We will create the ACR outside the Terraform scripts, as we will need to push our Backstage Docker image to the ACR.
+
+Since ACR should be unique, we want to see if there is an ACR already created.
+
+<div class="task" data-title="Task">
+
+> To list the ACRs in your resource group, run the following command from your **Backstage root directory**.
+</div>
+
+```shell
+az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{Name:name}" -o table
+```
+
+If you see the ACR name, then the ACR is alredy created. If it not in the output, then we will create the ACR.
+
+<div class="task" data-title="Task">
+
+> To create an Azure Container Registry, run the following command from your **Backstage root directory**. 
 
 </div>
 
-Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster. Next, let's build out paved path templates to be used in Backstage.
+```shell
+az acr create --resource-group rg-pe-aks-gitops-<your initals> --name backstageacr<your initals> --sku Basic
+```
+
+<div class="tip" data-title="Tip">
+
+> The ACR name must be unique across Azure. You can use the following command to get the ACR name.
+
+</div>
+
+This is what you should have so far:
+
+![Azure-Container-Registry](./assets/lab2-controlplane/azure-container-registry.png)
+
+Now, we will get the ACR login server.
+
+<div class="task" data-title="Task">
+
+> To get the ACR login server, run the following command:
+
+</div>
+
+```shell
+az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{LoginServer:loginServer}" -o table
+```
+
+You should see the following output:
+
+```shell
+LoginServer
+--------------------------
+backstageacrjrs.azurecr.us
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: The ACR login server is used to push the Docker images to the ACR. You will need this later.
+
+</div>
+
+## Step 6 - Create a Service Principal
+
+In this step, we will create a Service Principal to access the ACR. The Service Principal will be used to push the Docker images to the ACR.
+
+<div class="task" data-title="Task">
+
+> To create a Service Principal, run the following command from your **Backstage root directory**:
+
+</div>
+
+```shell
+az ad sp create-for-rbac --name backstage-sp --role acrpush --scopes /subscriptions/<your subscription id>/resourceGroups/rg-pe-aks-gitops-<your initials>/providers/Microsoft.ContainerRegistry/registries/<your acr name>
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: The Service Principal name must be unique across Azure. You can use the following command to get the Service Principal name:
+</div>
+
+```shell
+az ad sp list --display-name backstage-sp --query "[].{Name:displayName}" -o table
+```
+
+<div class="task" data-title="Task">
+
+> To get the Service Principal ID, run the following command:
+</div>
+
+```shell
+az ad sp list --display-name backstage-sp --query "[].{Id:id}" -o table
+```
+
+<div class="tip" data-title="Tip">
+
+> Note: The Service Principal ID is used to push the Docker images to the ACR. You will need this later.
+</div>
+
+<div class="task" data-title="Task">
+
+> To get the Service Principal password, run the following command:
+</div>
+
+```shell
+az ad sp credential reset --name backstage-sp --query "{password:password}" -o table
+```
+
+<div class="tip" data-title="Tip"`>
+
+> Note: The Service Principal password is used to push the Docker images to the ACR. You will need this later.
+</div>
+
+## Step 7 - Build the Backstage Dockerfile
+
+In this step, we will build the Backstage Dockerfile. The Dockerfile is used to build the Docker image for our local instance of Backstage app. First we need to tighten up our `app-config.yaml` file to update our `app.baseUrl` so it will be ready to deploy our application outside of our local environment. This is to avoid CORS policy issues once deployed on AKS.
+
+<div class="task" data-title="Task">
+
+> Open the `app-config.yaml` file in the root directory of your Backstage app, and add the following configuration to the `app-config.yaml` file.
+
+```yaml
+# On Line 1 in app-config.yaml
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:7007
+
+organization:
+  name: <Your Org Name>
+
+backend:
+  # Used for enabling authentication, secret is shared by all backend plugins
+  # See https://backstage.io/docs/auth/service-to-service-auth for
+  # information on the format
+  # auth:
+  #   keys:
+  #     - secret: ${BACKEND_SECRET}
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+    # Uncomment the following host directive to bind to specific interfaces
+    # host: 127.0.0.1
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
+    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
+  cors:
+    origin: http://localhost:7007
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+    Access-Control-Allow-Origin: '*'
+  https:
+    certificate:
+      type: 'pem'
+      key:
+          $file: /etc/tls/tls.key  #When running a YARN build you will need to make this resolve to the correct path in this case add a . however that will need to change when you build the image for the actual mount point. Alternativley create a local app-config with this removed to run YARN builds.
+      cert: 
+          $file: /etc/tls/tls.crt
+
+# On Line 42 in app-config.yaml
+database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+      ssl:
+        require: true
+        rejectUnauthorized: false
+
+# On Line 65 in app-config.yaml
+auth:
+  environment: development
+  providers:
+    github:
+      development:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        ## uncomment if using GitHub Enterprise
+        # enterpriseInstanceUrl: ${GITHUB_ENTERPRISE_INSTANCE_URL}
+        ## uncomment to set lifespan of user session
+        # sessionDuration: { hours: 24 } # supports `ms` library format (e.g. '24h', '2 days'), ISO duration, "human duration" as used in code
+        signIn:
+          resolvers:
+            # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers
+            - resolver: usernameMatchingUserEntityName
+
+# On Line 75 in app-config.yaml
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend process, typically `packages/backend`
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Local example template
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+  useUrlReadersSearch: true
+```
+
+</div>
+
+We now need to copy the folder `terraform/backstagechart` from the `misc` folder to the `backstage` root folder.
+
+<div class="task" data-title="Task">
+
+> To move the folder, run the following command from your **Backstage root directory**:
+</div>
+
+```shell
+copy ../misc/backstagechart ./backstage/backstagechart 
+```
+
+<div class="task" data-title="Task">
+
+> Now, from our backstage root folder `backstage` we need to run the following commands
+
+</div>
+
+```shell
+yarn install --immutable
+
+# tsc outputs type definitions to dist-types/ in the repo root, which are then consumed by the build
+yarn tsc
+
+# Build the backend, which bundles it all up into the packages/backend/dist folder.
+yarn build:backend
+```
+
+Once the host build is complete, we are ready to build our image.
+
+The Dockerfile is located in the `packages/backend` folder of your Backstage app.
+
+<div class="warning" data-title="Warning">
+
+> WARNING: Make sure you add the proper url for for the ACR, otherwise the image will not be pushed to the ACR. `.io` for commercial use and `.us` for government use.
+
+<div class="task" data-title="Task">
+
+> You can use the following command to build the Docker image.
+</div>
+
+```shell
+docker build . -f packages/backend/Dockerfile -t backstage 
+```
+
+Now we need to tag the Docker image with the ACR login server.
+
+<div class="task" data-title="Task">
+
+> To tag the Docker image, run the following command.
+
+```shell
+docker tag backstage backstageacr<YOUR_INITALS>.azurecr.us/backstage:v1
+```
+
+</div>
+
+To push the Docker image to the Azure Container Registry.
+
+<div class="task" data-title="Task">
+
+> Run the following command.
+
+```shell
+docker push backstageacr<YOUR_INITALS>.azurecr.us/backstage:v1
+```
+
+Once this has completed we should see our image in our registry.
+
+![acr-backstage-image](./assets/lab2-controlplane/acr-backstage-image.png)
+
+Now, we can add our Backstage instance to ArgoCD and the Control Plane cluster.
+
+## Step 8 - Adding Backstage to ArgoCD
+
+In this step, we will add our local instance of Backstage to ArgoCD. This will allow us to manage the Backstage instance using ArgoCD. To deploy Backstage, you can use the provided Terraform scripts. The scripts are located in the `terraform/backstage` folder. The scripts will deploy Backstage to the AKS cluster.
+
+First, we need to update the `terraform/backstage/main.tf` file with the following configuration:
+
+```shell
+# On Line 257 in terraform/backstage/main.tf
+
+resource "helm_release" "backstage" {
+  depends_on = [ kubernetes_secret.tls_secret ]
+  name       = "backstage"
+  repository = <your helm repo> # This is your current repo
+  chart      = "backstagechart"
+  version    = "1.0.0"
+
+  set {
+    name  = "image.repository"
+    value =  "backstageacr-<your intials>.azurecr.us/backstage"
+  }
+  ---taken out for brevity---
+```
+
+Now we need to update `locals.tf` with the following configuration:
+
+```shell
+# On Line 5 in terraform/backstage/locals.tf
+locals {
+  ---taken out for brevity---
+  resource_group_name = "${var.resource_group_name}-<your intitals>"
+  ---taken out for brevity---
+}
+```
+
+Now we need to update values in the `backstage/backstagechart/values.yaml` file.
+
+<div class="tip" data-title="Tip">
+
+> Note: K8S_SERVICE_ACCOUNT_TOKEN is used to authenticate with the Kubernetes API server. You can find the token in the `kubeconfig` file generated by Terraform. The token is located in the `users` section of the `kubeconfig` file.
+
+![kubeconfig](./assets/lab2-controlplane/token-location.png)
+</div>
+
+<div class="tip" data-title="Tip">
+
+> Note: The `kubernetesId` label is used to identify the Backstage instance in the AKS cluster. You can use any name for the `backstage` label, but it should be unique across the AKS cluster.
+</div>
+
+```yaml
+# On Line 5 in backstage/backstagechart/values.yaml
+env:
+  GITHUB_CLIENT_ID: "your-github-client-id"
+  GITHUB_CLIENT_SECRET: "your-github-client-secret"
+  POSTGRES_HOST: "your-postgres-host"
+  POSTGRES_PORT: "your-postgres-port"
+  POSTGRES_USER: "your-postgres-user"
+  POSTGRES_PASSWORD: "your-postgres-password"
+  POSTGRES_DB: "your-postgres-db"
+  BASE_URL: "http://your-backstage-public-ip:7007"
+  K8S_CLUSTER_NAME: "pe-aks-<your intials>"
+  K8S_CLUSTER_URL: "https://your-cluster-url"
+  K8S_SERVICE_ACCOUNT_TOKEN: "token"
+  GITHUB_TOKEN: "token"
+  GITOPS_REPO: "https://github.com/azurenoops/pe-backstage-azure-workshop"
+
+# On Line 25 in backstage/backstagechart/values.yaml
+image:
+  repository: backstageacr<your intials>.azurecr.us/backstage
+
+# On Line 44 in backstage/backstagechart/values.yaml
+podAnnotations: 
+  backstage.io/kubernetes-id: <cluster-name-component>
+
+labels:
+  kubernetesId: <your-cluster-name-component>
+```
+
+Now we are ready to deploy Backstage to the AKS cluster.
+
+<div class="task" data-title="Task">
+
+> To add Backstage to ArgoCD, run the following command from your **Backstage root directory** in the **bash** terminal.
+</div>
+
+```shell
+cd terraform/backstage
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to initialize Terraform:
+</div>
+
+```shell
+terraform init
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to validate the Terraform configuration:
+</div>
+
+```shell
+terraform validate
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to plan the Terraform configuration:
+
+```shell
+terraform apply -var github_token=<your github token> -var aks_resource_group=<your aks resource group> -var aks_node_resource_group=<your aks node resource group> -var aks_name=<your aks name> -var kubconfig_path=<your kubconfig path> --auto-approve
+```
+
+<div class="tip" data-title="Tip">
+
+> Reminder: The kubconfig path is the path to the kubeconfig file generated by Terraform. It should be in the `terraform/aks` folder. It should be the entire path to the kubeconfig file.
+
+</div>
+
+<div class="task" data-title="Task">
+
+> To check the status of the Backstage application, you can run the following command:
+
+```shell
+kubectl get all -n backstage
+```
+
+You should see the following output:
+
+```shell
+NAME                                                              READY   STATUS    RESTARTS          AGE
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+```
+
+<div class="tip" data-title="Tip">
+
+> Note: The Backstage application is deployed to the AKS cluster. You can access the Backstage application using the following URL:
+
+```shell
+http://<your aks name>.<your aks resource group>.cloudapp.azure.com
+```
+
+</div>
+
+Next, let's build out paved path templates to be used in Backstage.
 
 ---
 
@@ -1098,114 +2160,18 @@ In this lab, we will discuss how to implement paved paths in Backstage. Paved pa
 
 Paved paths can be used to create new projects based on predefined templates. These templates can include configuration files, code snippets, and other resources that help developers get started quickly with a new project.
 
-## Step 1 - Add GitHub Catalog Integration
+## Step 1 - Define the Paved Path
 
-The GitHub integration has a discovery provider for discovering catalog entities within a GitHub organization. The provider will crawl the GitHub organization and register entities matching the configured path. This can be useful as an alternative to static locations or manually adding things to the catalog. This is the preferred method for ingesting entities into the catalog.
+Before we can create a paved path, we need to define the paved path. The paved path is a set of best practices and configurations for a specific type of application.
 
- This can be done by adding the **@backstage/plugin-catalog-backend-module-github** package to your backend.
+### Use Case - Onboarding a new team
 
-### Installation
+In this use case, we will define a paved path for onboarding a new team. The paved path will include the following:
 
-The package is not installed by default, therefore you have to add **@backstage/plugin-catalog-backend-module-github** to your backend package.
-
-Run the following command from your **Backstage root directory**:
-
-```typescript
-yarn --cwd packages/backend add @backstage/plugin-catalog-backend-module-github
-```
-
-Next add the basic configuration to the **app-config.yaml** file:
-
-```yaml
-catalog:
-  providers:
-    github:
-      # the provider ID can be any camelCase string
-      providerId:
-        organization: '<Your Org Name>' # string
-        catalogPath: '/catalog-info.yaml' # string
-        filters:
-          branch: 'main' # string
-          repository: '.*' # Regex
-        schedule: # same options as in SchedulerServiceTaskScheduleDefinition
-          # supports cron, ISO duration, "human duration" as used in code
-          frequency: { minutes: 30 }
-          # supports ISO duration, "human duration" as used in code
-          timeout: { minutes: 3 }
-      customProviderId:
-        organization: 'new-org' # string
-        catalogPath: '/custom/path/catalog-info.yaml' # string
-        filters: # optional filters
-          branch: 'develop' # optional string
-          repository: '.*' # optional Regex
-      wildcardProviderId:
-        organization: 'new-org' # string
-        catalogPath: '/groups/**/*.yaml' # this will search all folders for files that end in .yaml
-        filters: # optional filters
-          branch: 'develop' # optional string
-          repository: '.*' # optional Regex
-      topicProviderId:
-        organization: 'backstage' # string
-        catalogPath: '/catalog-info.yaml' # string
-        filters:
-          branch: 'main' # string
-          repository: '.*' # Regex
-          topic: 'backstage-exclude' # optional string
-      topicFilterProviderId:
-        organization: 'backstage' # string
-        catalogPath: '/catalog-info.yaml' # string
-        filters:
-          branch: 'main' # string
-          repository: '.*' # Regex
-          topic:
-            include: ['backstage-include'] # optional array of strings
-            exclude: ['experiments'] # optional array of strings
-      validateLocationsExist:
-        organization: 'backstage' # string
-        catalogPath: '/catalog-info.yaml' # string
-        filters:
-          branch: 'main' # string
-          repository: '.*' # Regex
-        validateLocationsExist: true # optional boolean
-      visibilityProviderId:
-        organization: 'backstage' # string
-        catalogPath: '/catalog-info.yaml' # string
-        filters:
-          visibility:
-            - public
-            - internal
-      enterpriseProviderId:
-        host: ghe.example.net
-        organization: 'backstage' # string
-        catalogPath: '/catalog-info.yaml' # string
-```
-
-<div class="task" data-title="Task">
-
-> For large organizations, this plugin can take a long time, so be careful setting low frequency / timeouts and importing a large amount of users / groups for the first try.
-
-> The configuration above is a basic configuration for the Microsoft Graph API. You can find more information about the configuration in the [Backstage documentation](https://backstage.io/docs/features/software-catalog/catalog-integrations#microsoft-graph).
-
-</div>
-
-Finally, updated your backend by adding the following line in **packages/backend/src/index.ts**:
-
-```typescript
-backend.add(import('@backstage/plugin-catalog-backend-module-github'));
-```
-
-## Add GitHub Integration to Backstage
-
- 
-
-
-## Implementing Paved Paths in Backstage
-
-In Backstage, paved paths can be implemented using the scaffolder plugin. The scaffolder plugin allows you to create templates for different types of applications and generate new projects based on those templates.
-
-To implement paved paths in Backstage, you can create a new template in the `examples/template` directory. The template should include all the necessary configuration and best practices for a specific type of application.
-
-You can then use the scaffolder plugin to generate new projects based on the template. The scaffolder plugin will create a new project in the `packages` directory with all the necessary configuration and best practices.
+- A new GitHub repository for the team
+- A new GitHub Actions pipeline for the team
+- A new Azure Kubernetes Service (AKS) cluster for the team
+- A Software template for onboading a new team
 
 ---
 
@@ -1225,38 +2191,10 @@ In this step, we will define the infrastructure as code for the deployment of Ba
 
 We will use the docker file that comes with the Backstage app to create a Docker image and deploy it to Azure. We will then create a Kubernetes cluster on Azure and deploy the Docker image to the cluster.
 
-### Create a New VS Code Project
-
-Create a new VS Code project in the root directory of your Backstage project.
-
-Add the following files to the project to start defining the infrastructure as code:
-
-- `main.tf`: The main Terraform configuration file
-- `variables.tf`: The Terraform variables file
-- `outputs.tf`: The Terraform outputs file
-
-### Create a Terraform Configuration File
-
-Create a new Terraform configuration file named `main.tf` in the root directory of your Backstage project. Add the following code to the file:
-
-```hcl
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "East US"
-}
-```
-
-This code defines an Azure resource group named `example-resources` in the `East US` region.
 
 ---
 
 # Lab 5 - Applying Governance via Policy as Code
-
-## Introduction
 
 In this lab, you will explore adding governance to the control plane via Azure Policy, a service in Azure that you use to create, assign and manage policies. These policies enforce different rules and effects over your resources, so those resources stay compliant with your corporate standards and service level agreements.
 
@@ -1282,6 +2220,12 @@ In your resource group, you will find:
 ---
 
 # Lab 6 - Self-Service Infrastructure
+
+In this lab, you will explore how to use Backstage to create a self-service infrastructure for your teams. You will create a new Backstage app and add a new template to the app. **Self-Service Infrastructure** is a concept that allows teams to create and manage their own infrastructure without the need for IT intervention.
+
+We will be doing a couple of things in this lab:
+
+1. 
 
 ---
 
