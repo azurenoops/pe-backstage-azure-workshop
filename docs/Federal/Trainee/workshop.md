@@ -293,7 +293,7 @@ Ok to proceed? (y)
 
 <div class="task" data-title="Task">
 
-> Now, in the PowerShell (pwsh) terminal in VSCode, run the following command:
+> Now, in the PowerShell (pwsh) terminal in VSCode, run the following command at the root of your project directory:
 
 </div>
 
@@ -1308,16 +1308,59 @@ This will start the Backstage app and open a new tab in your browser. You should
 
 ![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org.png)
 
+## Step 8 - Submit PR to GitHub
+
+Now that you have added GitHub Org data to Backstage, you can submit a PR to GitHub. This is a good practice to follow when working with source code. Normally, we don't want to push changes directly to the main branch but for the purpose of this lab, we will push the changes directly to the main branch.
+
+<div class="task" data-title="Task">
+
+> Go to `Source Control` tab in VSCode, and right click on the `Changes` and click on `Stage All Changes`.
+
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-staged.png)
+
+<div class="task" data-title="Task">
+
+> Then add in a commit message and click on `Commit`.
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-commit.png)
+
+<div class="task" data-title="Task">
+
+> Now go your repository in Github and click on `Pull Requests` tab.
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-push.png)
+
+<div class="task" data-title="Task">
+
+> Then click on `New Pull Request` button.
+
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-pr.png)
+
+<div class="task" data-title="Task">
+
+
 
 You have completed the first lab. You have created a new Backstage app, explored the app, configured the app, and added GitHub authentication to Backstage. You have also added GitHub Org data to Backstage.
 
-In the next lab, we will deploy the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform.
+In the next lab, we will focus on Day 1 operations, deploying the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform.
 
 ---
 
 # Lab 2 - Deploy Control Plane cluster on Azure
 
-In this lab, we will deploy the Control Plane cluster on Azure Kubernetes Service (AKS). We will use Terraform to define the infrastructure as code for the deployment of Backstage on Azure. This lab will take approximately 30 minutes to complete.
+Mastering both Day 1 and Day 2 operations is crucial for platform, and DevOps engineers to ensure smooth operations in platform engineering.
+
+Day 1 operations involve the initial setup and configuration of the platform, while Day 2 operations focus on maintenance, updates, responding to incidents, and scaling. We will focus on Day 1 operations in this lab. Setting up the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform. The Platform Engineering team is responsible for both Day 1 and Day 2 operations of the platform.
+
+To introduce you to the components, the following diagram shows the architecture of the Control Plane cluster. This lab will take approximately 40 minutes to complete.
+
+![Control Plane Architecture](./assets/lab2-controlplane/control-plane-architecture.png)
 
 ## Step 1 - Validate your Pre-requisites
 
@@ -1333,10 +1376,17 @@ To get started, you will need to validate you have the following tools:
 [kubectl-install]: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 [helm-install]: https://helm.sh/docs/intro/install/
 
-
 ## Step 2 - Provision the Control Plane Cluster
 
-With the repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `terraform/aks` folder. The Terraform files contains all resources you need, including an AKS cluster, Crossplane, and ArgoCD.
+In this step, we will provision the Control Plane cluster on Azure Kubernetes Service (AKS), with addons Crossplane, and ArgoCD using Terraform. The Control Plane cluster is the foundation of the platform and is used to manage the day 2 operations of the platform. Since we are provisoning the Control Plane, this is Day 1 operations. In later labs, we will focus on Day 2 operations.
+
+With the lab repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `terraform/aks` folder. The Terraform files contains all resources you need, including an AKS cluster, Crossplane, and ArgoCD.
+
+<div class="tip" data-title="Tip">
+
+> To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
+
+</div>
 
 <div class="task" data-title="Task">
 
@@ -1346,6 +1396,21 @@ With the repository that you cloned in Lab 1, it comes with a pre-defined Terraf
 
 ```shell
 cd terraform/aks
+```
+
+<div class="task" data-title="Task">
+
+> Update the resource group name in the `locals.tf` file located in the `terraform/aks` folder with your initials.
+</div>
+
+```shell
+locals {
+  ---taken out for brevity---
+
+  resource_group_name = "${var.resource_group_name}-<your intitals>"
+  
+  ---taken out for brevity---
+}
 ```
 
 <div class="task" data-title="Task">
@@ -1370,23 +1435,19 @@ terraform validate
 
 <div class="task" data-title="Task">
 
-> Then run the following command to plan the Terraform configuration:
-
-</div>
-
-```shell
-terraform plan -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane 
-```
-
-<div class="task" data-title="Task">
-
 > Then run the following command to apply the Terraform configuration:
 
 </div>
 
 ```shell
-terraform apply --auto-approve
+terraform apply -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane --auto-approve
 ```
+
+<div class="warning" data-title="Warning">
+
+>Note: You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
+
+</div>
 
 <div class="tip" data-title="Tips">
 
@@ -1402,30 +1463,49 @@ Now that the AKS cluster is provisioned, you can access the ArgoCD UI to manage 
 
 ## Step 3 - Validate the Cluster is working
 
-To access the AKS cluster, you need to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform.
+Let's validate that the cluster is working. To access the AKS cluster, you need to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform. But first. we need make sure we can get to the AKS cluster.
+
+As the result, you should see the `kubeconfig` file generated by Terraform in the `terraform/aks` folder. We will use this file to access the AKS cluster. Let's validate that the cluster is working.
 
 <div class="task" data-title="Task">
 
-> To set the KUBECONFIG environment variable, run the following command:
+> Run the following command to access the AKS cluster:
+</div>
+
+```shell
+az aks browse --resource-group <your resource group> --name <your aks cluster name>
+```
+
+This command will open the Kubernetes dashboard in your browser.
+
+<div class="task" data-title="Task">
+
+> Run the following commands to set the KUBECONFIG environment variable to point to the kubeconfig file generated by Terraform.
 
 </div>
 
 ```shell
-export KUBECONFIG=<your_path_to_this_repo>/pe-backstage-azure-workshop/terraform//aks/kubeconfig
-echo $KUBECONFIG
+export KUBECONFIG=<path to file>/kubeconfig
 ```
 
-To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
+<div class="tip" data-title="Tip">
+
+> Remember to replace `<path to file>` with the full path to the `kubeconfig` file generated by Terraform.
+
+</div>
+
+To validate that the cluster is working, you can run the following command to get the list of pods running on the cluster.
 
 <div class="task" data-title="Task">
- 
-> To validate that the cluster is working, you can run the following command to get the list of pods running on the cluster
+
+> Run the following command.
 
 </div>
 
 ```shell
 kubectl get pods --all-namespaces
 ```
+
 You should see the following pods running on the cluster:
 
 ```shell
@@ -1481,14 +1561,105 @@ kube-system         metrics-server-5dfc656944-rm2md                             
 kube-system         retina-agent-pw88n                                                1/1     Running   0                 46h
 ```
 
+If you see the pods running, then the cluster is working. Next, we will access the ArgoCD UI to manage the applications deployed on the cluster.
+
 ## Step 4 - Accessing the Control Plane Cluster and ArgoCD UI
 
-To access the Control Plane cluster, We will use kubectl to access the cluster. You can use the following commands to get the initial admin password, the IP address of the ArgoCD web interface and forward the port to access the ArgoCD UI.
+To access the Control Plane cluster, you will need to configure the kubectl context to point to the AKS cluster.
 
 <div class="task" data-title="Task">
 
-> Then you can run the following command to get the initial admin password of the ArgoCD web interface.
+> Then run the following command to get the IP address of the ArgoCD web interface:
+</div>
 
+```shell
+kubectl get svc -n argocd argo-cd-argocd-server
+```
+
+You should see the following output:
+
+```shell
+NAME                     TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+argo-cd-argocd-server   ClusterIP      10.0.89.227     <none>          8081/TCP         38m
+```
+
+<div class="warning" data-title="Warning">
+
+> As you can see, the External IP has not been assigned yet. It may take a few minutes for the LoadBalancer to create a public IP for the ArgoCD UI after the Terraform apply. We will need to list the services again to get the public IP, if it is not assigned yet, we will need to assign it manually.
+</div>
+
+<div class="task" data-title="Task">
+
+> To check the resources created, you can run the following command. Again, be sure to use the namespace name you created is `argocd`.
+</div>
+
+```shell
+kubectl get all -n argocd
+```
+
+You should see the following output:
+
+```shell
+NAME                                                              READY   STATUS    RESTARTS          AGE
+pod/argo-cd-argocd-application-controller-0                     1/1     Running   0          38m
+pod/argo-cd-argocd-applicationset-controller-677fd74987-m22gn   1/1     Running   0          38m
+pod/argo-cd-argocd-dex-server-85f5db5458-kqv9s                  1/1     Running   0          38m
+pod/argo-cd-argocd-notifications-controller-6cf884fb7f-pljhc    1/1     Running   0          38m
+pod/argo-cd-argocd-redis-6c766746d8-8k2lj                       1/1     Running   0          38m
+pod/argo-cd-argocd-repo-server-7c96b84946-xqrnz                 1/1     Running   0          38m
+pod/argo-cd-argocd-server-78498f46f6-qrfs9                      1/1     Running   0          38m
+
+NAME                                               TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                      AGE
+service/argo-cd-argocd-applicationset-controller   ClusterIP      10.0.180.20   <none>          7000/TCP                     38m
+service/argo-cd-argocd-dex-server                  ClusterIP      10.0.142.54   <none>          5556/TCP,5557/TCP            38m
+service/argo-cd-argocd-redis                       ClusterIP      10.0.90.173   <none>          6379/TCP                     38m
+service/argo-cd-argocd-repo-server                 ClusterIP      10.0.89.227   <none>          8081/TCP                     38m
+service/argo-cd-argocd-server                      ClusterIP      10.0.85.130   <none>          80:31650/TCP,443:30158/TCP   38m
+
+NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/argo-cd-argocd-applicationset-controller   1/1     1            1           38m
+deployment.apps/argo-cd-argocd-dex-server                  1/1     1            1           38m
+deployment.apps/argo-cd-argocd-notifications-controller    1/1     1            1           38m
+deployment.apps/argo-cd-argocd-redis                       1/1     1            1           38m
+deployment.apps/argo-cd-argocd-repo-server                 1/1     1            1           38m
+deployment.apps/argo-cd-argocd-server                      1/1     1            1           38m
+
+NAME                                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/argo-cd-argocd-applicationset-controller-677fd74987   1         1         1       38m
+replicaset.apps/argo-cd-argocd-dex-server-85f5db5458                  1         1         1       38m
+replicaset.apps/argo-cd-argocd-notifications-controller-6cf884fb7f    1         1         1       38m
+replicaset.apps/argo-cd-argocd-redis-6c766746d8                       1         1         1       38m
+replicaset.apps/argo-cd-argocd-repo-server-7c96b84946                 1         1         1       38m
+replicaset.apps/argo-cd-argocd-server-78498f46f6                      1         1         1       38m
+
+NAME                                                     READY   AGE
+statefulset.apps/argo-cd-argocd-application-controller   1/1     38m
+```
+
+As you can see, the `Argo CD API server service(service/argo-cd-argocd-server)` is not exposed by default; this means it is configured with a Cluster IP and not a Load Balancer. To access the API server you will have to do the following:
+
+- Expose the API server with a Load Balancer
+- Use the kubectl proxy command to access the API server
+- Use the kubectl port-forward command to access the API server
+
+To expose the API server with a Load Balancer, you can run the following command:
+
+```shell
+kubectl patch svc argo-cd-argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: It will take a few minutes for the LoadBalancer to append an external IP to the service. If you want to check the status of the service, you can run the following command again.
+
+```shell
+kubectl get all -n argocd
+```
+</div>
+
+<div class="task" data-title="Task">
+
+> Run the following command to get the initial admin password of the ArgoCD web interface:
 </div>
 
 ```shell
@@ -1501,60 +1672,483 @@ kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .d
 
 </div>
 
-When you run the above command, you will get the initial admin password for the ArgoCD UI. You can use this password to log in to the ArgoCD UI.
-
 <div class="task" data-title="Task">
 
-> Then run the following command to get the IP address of the ArgoCD web interface.
+> Now let's use the kubectl port-forward command to access the API server:
 
 </div>
 
 ```shell
-kubectl get svc -n argocd argo-cd-argocd-server
+kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:443
 ```
 
-It may take a few minutes for the LoadBalancer to create a public IP for the ArgoCD UI after the Terraform apply. In case something goes wrong and you don't find a public IP, 
-
-<div class="task" data-title="Task">
-
-> Connect to the ArgoCD server doing a port forward with kubectl and access the UI on https://localhost:8080.
-
-</div>
+You should see the following output:
 
 ```shell
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
 ```
 
-You can now access the ArgoCD UI using the IP address and the initial admin password. You can use the following URL to access the ArgoCD UI:
+You can now access the ArgoCD UI using the following URL:
 
 ```shell
-https://localhost:8080
+http://localhost:8080
 ```
 
 <div class="tip" data-title="Tips">
 
-> Note: The username for the ArgoCD UI login is `admin`
+> Note: The username for the ArgoCD UI login is `admin`. You can use the initial admin password to log in to the ArgoCD UI.
 
 </div>
+
+You can now access the ArgoCD UI using url and you will see the ArgoCD login page. You can now access the ArgoCD UI using the `admin` username and the initial `admin` password.
 
 ![ArgoCD-login](./assets/lab2-controlplane/argocd-login.png)
 
-Now that you logged in to the ArgoCD UI using the initial admin password. You should see the ArgoCD UI with the list of applications deployed on the cluster.
+Once you log in to the ArgoCD UI, you will see the ArgoCD dashboard.
 
 ![ArgoCD-dashboard](./assets/lab2-controlplane/argocd-dashboard.png)
 
-<div class="tip" data-title="Tips">
+Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster.
 
-> Note: You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
+Let's add our local instance of Backstage to ArgoCD and the Control Plane cluster.
+
+## Step 5 - Create a Azure Container Registry
+
+In this step, we will create an Azure Container Registry (ACR) to store the Docker images for our local instance Backstage app. The Control Plane Kubernetes cluster will pull the Docker images from the ACR. We will create the ACR outside the Terraform scripts, as we will need to push our Backstage Docker image to the ACR.
+
+Since ACR should be unique, we want to see if there is an ACR already created.
+
+<div class="task" data-title="Task">
+
+> To list the ACRs in your resource group, run the following command from your **Backstage root directory**.
+</div>
+
+```shell
+az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{Name:name}" -o table
+```
+
+If you see the ACR name, then the ACR is alredy created. If it not in the output, then we will create the ACR.
+
+<div class="task" data-title="Task">
+
+> To create an Azure Container Registry, run the following command from your **Backstage root directory**. 
 
 </div>
 
-Now that you have access to the ArgoCD UI, you can manage the applications deployed on the cluster.
+```shell
+az acr create --resource-group rg-pe-aks-gitops-<your initals> --name backstageacr<your initals> --sku Basic
+```
 
-## Step 5 - Adding Backstage to ArgoCD
+<div class="tip" data-title="Tip">
 
-To view the Kubernetes resources in Backstage, we need to add the Kubernetes plugin to Backstage. This will allow users to see the Kubernetes resources in Backstage.
+> The ACR name must be unique across Azure. You can use the following command to get the ACR name.
 
+</div>
+
+This is what you should have so far:
+
+![Azure-Container-Registry](./assets/lab2-controlplane/azure-container-registry.png)
+
+Now, we will get the ACR login server.
+
+<div class="task" data-title="Task">
+
+> To get the ACR login server, run the following command:
+
+</div>
+
+```shell
+az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{LoginServer:loginServer}" -o table
+```
+
+You should see the following output:
+
+```shell
+LoginServer
+--------------------------
+backstageacrjrs.azurecr.us
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: The ACR login server is used to push the Docker images to the ACR. You will need this later.
+
+</div>
+
+## Step 6 - Create a Service Principal
+
+In this step, we will create a Service Principal to access the ACR. The Service Principal will be used to push the Docker images to the ACR.
+
+<div class="task" data-title="Task">
+
+> To create a Service Principal, run the following command from your **Backstage root directory**:
+
+</div>
+
+```shell
+az ad sp create-for-rbac --name backstage-sp --role acrpush --scopes /subscriptions/<your subscription id>/resourceGroups/rg-pe-aks-gitops-<your initials>/providers/Microsoft.ContainerRegistry/registries/<your acr name>
+```
+
+<div class="tip" data-title="Tips">
+
+> Note: The Service Principal name must be unique across Azure. You can use the following command to get the Service Principal name:
+</div>
+
+```shell
+az ad sp list --display-name backstage-sp --query "[].{Name:displayName}" -o table
+```
+
+<div class="task" data-title="Task">
+
+> To get the Service Principal ID, run the following command:
+</div>
+
+```shell
+az ad sp list --display-name backstage-sp --query "[].{Id:id}" -o table
+```
+
+<div class="tip" data-title="Tip">
+
+> Note: The Service Principal ID is used to push the Docker images to the ACR. You will need this later.
+</div>
+
+<div class="task" data-title="Task">
+
+> To get the Service Principal password, run the following command:
+</div>
+
+```shell
+az ad sp credential reset --name backstage-sp --query "{password:password}" -o table
+```
+
+<div class="tip" data-title="Tip"`>
+
+> Note: The Service Principal password is used to push the Docker images to the ACR. You will need this later.
+</div>
+
+## Step 7 - Build the Backstage Dockerfile
+
+In this step, we will build the Backstage Dockerfile. The Dockerfile is used to build the Docker image for our local instance of Backstage app. First we need to tighten up our `app-config.yaml` file to update our `app.baseUrl` so it will be ready to deploy our application outside of our local environment. This is to avoid CORS policy issues once deployed on AKS.
+
+<div class="task" data-title="Task">
+
+> Open the `app-config.yaml` file in the root directory of your Backstage app, and add the following configuration to the `app-config.yaml` file.
+
+```yaml
+# On Line 1 in app-config.yaml
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:7007
+
+organization:
+  name: <Your Org Name>
+
+backend:
+  # Used for enabling authentication, secret is shared by all backend plugins
+  # See https://backstage.io/docs/auth/service-to-service-auth for
+  # information on the format
+  # auth:
+  #   keys:
+  #     - secret: ${BACKEND_SECRET}
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+    # Uncomment the following host directive to bind to specific interfaces
+    # host: 127.0.0.1
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
+    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
+  cors:
+    origin: http://localhost:7007
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+    Access-Control-Allow-Origin: '*'
+  https:
+    certificate:
+      type: 'pem'
+      key:
+          $file: /etc/tls/tls.key  #When running a YARN build you will need to make this resolve to the correct path in this case add a . however that will need to change when you build the image for the actual mount point. Alternativley create a local app-config with this removed to run YARN builds.
+      cert: 
+          $file: /etc/tls/tls.crt
+
+# On Line 42 in app-config.yaml
+database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+      ssl:
+        require: true
+        rejectUnauthorized: false
+
+# On Line 65 in app-config.yaml
+auth:
+  environment: development
+  providers:
+    github:
+      development:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        ## uncomment if using GitHub Enterprise
+        # enterpriseInstanceUrl: ${GITHUB_ENTERPRISE_INSTANCE_URL}
+        ## uncomment to set lifespan of user session
+        # sessionDuration: { hours: 24 } # supports `ms` library format (e.g. '24h', '2 days'), ISO duration, "human duration" as used in code
+        signIn:
+          resolvers:
+            # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers
+            - resolver: usernameMatchingUserEntityName
+
+# On Line 75 in app-config.yaml
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend process, typically `packages/backend`
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Local example template
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+  useUrlReadersSearch: true
+```
+
+</div>
+
+We now need to copy the folder `terraform/backstagechart` from the `misc` folder to the `backstage` root folder.
+
+<div class="task" data-title="Task">
+
+> To move the folder, run the following command from your **Backstage root directory**:
+</div>
+
+```shell
+copy ../misc/backstagechart ./backstage/backstagechart 
+```
+
+<div class="task" data-title="Task">
+
+> Now, from our backstage root folder `backstage` we need to run the following commands
+
+</div>
+
+```shell
+yarn install --immutable
+
+# tsc outputs type definitions to dist-types/ in the repo root, which are then consumed by the build
+yarn tsc
+
+# Build the backend, which bundles it all up into the packages/backend/dist folder.
+yarn build:backend
+```
+
+Once the host build is complete, we are ready to build our image.
+
+The Dockerfile is located in the `packages/backend` folder of your Backstage app.
+
+<div class="warning" data-title="Warning">
+
+> WARNING: Make sure you add the proper url for for the ACR, otherwise the image will not be pushed to the ACR. `.io` for commercial use and `.us` for government use.
+
+<div class="task" data-title="Task">
+
+> You can use the following command to build the Docker image.
+</div>
+
+```shell
+docker build . -f packages/backend/Dockerfile -t backstage 
+```
+
+Now we need to tag the Docker image with the ACR login server.
+
+<div class="task" data-title="Task">
+
+> To tag the Docker image, run the following command.
+
+```shell
+docker tag backstage backstageacr<YOUR_INITALS>.azurecr.us/backstage:v1
+```
+
+</div>
+
+To push the Docker image to the Azure Container Registry.
+
+<div class="task" data-title="Task">
+
+> Run the following command.
+
+```shell
+docker push backstageacr<YOUR_INITALS>.azurecr.us/backstage:v1
+```
+
+Once this has completed we should see our image in our registry.
+
+![acr-backstage-image](./assets/lab2-controlplane/acr-backstage-image.png)
+
+Now, we can add our Backstage instance to ArgoCD and the Control Plane cluster.
+
+## Step 8 - Adding Backstage to ArgoCD
+
+In this step, we will add our local instance of Backstage to ArgoCD. This will allow us to manage the Backstage instance using ArgoCD. To deploy Backstage, you can use the provided Terraform scripts. The scripts are located in the `terraform/backstage` folder. The scripts will deploy Backstage to the AKS cluster.
+
+First, we need to update the `terraform/backstage/main.tf` file with the following configuration:
+
+```shell
+# On Line 257 in terraform/backstage/main.tf
+
+resource "helm_release" "backstage" {
+  depends_on = [ kubernetes_secret.tls_secret ]
+  name       = "backstage"
+  repository = <your helm repo> # This is your current repo
+  chart      = "backstagechart"
+  version    = "1.0.0"
+
+  set {
+    name  = "image.repository"
+    value =  "backstageacr-<your intials>.azurecr.us/backstage"
+  }
+  ---taken out for brevity---
+```
+
+Now we need to update `locals.tf` with the following configuration:
+
+```shell
+# On Line 5 in terraform/backstage/locals.tf
+locals {
+  ---taken out for brevity---
+  resource_group_name = "${var.resource_group_name}-<your intitals>"
+  ---taken out for brevity---
+}
+```
+
+Now we need to update values in the `backstage/backstagechart/values.yaml` file.
+
+<div class="tip" data-title="Tip">
+
+> Note: K8S_SERVICE_ACCOUNT_TOKEN is used to authenticate with the Kubernetes API server. You can find the token in the `kubeconfig` file generated by Terraform. The token is located in the `users` section of the `kubeconfig` file.
+
+![kubeconfig](./assets/lab2-controlplane/token-location.png)
+</div>
+
+<div class="tip" data-title="Tip">
+
+> Note: The `kubernetesId` label is used to identify the Backstage instance in the AKS cluster. You can use any name for the `backstage` label, but it should be unique across the AKS cluster.
+</div>
+
+```yaml
+# On Line 5 in backstage/backstagechart/values.yaml
+env:
+  GITHUB_CLIENT_ID: "your-github-client-id"
+  GITHUB_CLIENT_SECRET: "your-github-client-secret"
+  POSTGRES_HOST: "your-postgres-host"
+  POSTGRES_PORT: "your-postgres-port"
+  POSTGRES_USER: "your-postgres-user"
+  POSTGRES_PASSWORD: "your-postgres-password"
+  POSTGRES_DB: "your-postgres-db"
+  BASE_URL: "http://your-backstage-public-ip:7007"
+  K8S_CLUSTER_NAME: "pe-aks-<your intials>"
+  K8S_CLUSTER_URL: "https://your-cluster-url"
+  K8S_SERVICE_ACCOUNT_TOKEN: "token"
+  GITHUB_TOKEN: "token"
+  GITOPS_REPO: "https://github.com/azurenoops/pe-backstage-azure-workshop"
+
+# On Line 25 in backstage/backstagechart/values.yaml
+image:
+  repository: backstageacr<your intials>.azurecr.us/backstage
+
+# On Line 44 in backstage/backstagechart/values.yaml
+podAnnotations: 
+  backstage.io/kubernetes-id: <cluster-name-component>
+
+labels:
+  kubernetesId: <your-cluster-name-component>
+```
+
+Now we are ready to deploy Backstage to the AKS cluster.
+
+<div class="task" data-title="Task">
+
+> To add Backstage to ArgoCD, run the following command from your **Backstage root directory** in the **bash** terminal.
+</div>
+
+```shell
+cd terraform/backstage
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to initialize Terraform:
+</div>
+
+```shell
+terraform init
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to validate the Terraform configuration:
+</div>
+
+```shell
+terraform validate
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to plan the Terraform configuration:
+
+```shell
+terraform apply -var github_token=<your github token> -var aks_resource_group=<your aks resource group> -var aks_node_resource_group=<your aks node resource group> -var aks_name=<your aks name> -var kubconfig_path=<your kubconfig path> --auto-approve
+```
+
+<div class="tip" data-title="Tip">
+
+> Reminder: The kubconfig path is the path to the kubeconfig file generated by Terraform. It should be in the `terraform/aks` folder. It should be the entire path to the kubeconfig file.
+
+</div>
+
+<div class="task" data-title="Task">
+
+> To check the status of the Backstage application, you can run the following command:
+
+```shell
+kubectl get all -n backstage
+```
+
+You should see the following output:
+
+```shell
+NAME                                                              READY   STATUS    RESTARTS          AGE
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+```
+
+<div class="tip" data-title="Tip">
+
+> Note: The Backstage application is deployed to the AKS cluster. You can access the Backstage application using the following URL:
+
+```shell
+http://<your aks name>.<your aks resource group>.cloudapp.azure.com
+```
+
+</div>
 
 Next, let's build out paved path templates to be used in Backstage.
 

@@ -2,6 +2,7 @@ locals {
   name        = local.environment
   environment = "control-plane"
   location    = var.location
+  resource_group_name = "${var.resource_group_name}-<your intitals>"
 
   #cluster_version = var.kubernetes_version
 
@@ -10,10 +11,7 @@ locals {
   gitops_addons_path     = var.gitops_addons_path
   gitops_addons_revision = var.gitops_addons_revision
 
-
   argocd_namespace = "argocd"
-
-  github_token = var.github_token
   azure_addons = {
     enable_azure_crossplane_upbound_provider = true
   }
