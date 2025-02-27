@@ -13,3 +13,20 @@ output "azure_client_secret" {
 output "azure_tenant_id" {
   value = data.azurerm_client_config.current.tenant_id
 }
+
+output "postgres_host" {
+  value = azurerm_postgresql_flexible_server.backstagedbserver.fqdn
+}
+
+output "postgres_db_name" {
+  value = azurerm_postgresql_flexible_server_database.backstage_plugin_catalog.name
+}
+
+output "postgres_username" {
+  value = azurerm_postgresql_flexible_server.backstagedbserver.administrator_login
+}
+
+output "postgres_password" {
+  value = azurerm_postgresql_flexible_server.backstagedbserver.administrator_password
+  sensitive = true
+}

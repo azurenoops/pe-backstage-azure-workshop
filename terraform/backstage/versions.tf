@@ -40,7 +40,7 @@ provider "azurerm" {
 
 provider "helm" {
   kubernetes {
-    config_path = "${var.kubconfig_path}"
+    config_path = "${local.kubconfig_path}"
   }
 }
 
