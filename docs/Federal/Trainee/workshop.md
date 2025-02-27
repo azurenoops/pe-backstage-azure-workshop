@@ -1184,15 +1184,13 @@ Then click on Generate token. If you need more information on this mechanism you
 
 <div class="task" data-title="Task">
 
-> Open the `environments.sh` file in the root directory of your Backstage app, and add the following configuration to the `environments.sh` file.
+> We need add the following configuration to the `environments.sh` file. The following command will add the GitHub PAT to your `environments.sh` file.
 </div>
 
 ```shell
 echo "GITHUB_TOKEN=<your-github-pat>" >> environments.sh
 export "GITHUB_TOKEN=<your-github-pat>"
 ```
-
-This will add the GitHub PAT to your environment.
 
 ### Add the GitHub PAT to Backstage
 
@@ -1931,7 +1929,18 @@ catalog:
 
 </div>
 
-We now need to copy the folder `terraform/backstagechart` from the `misc` folder to the `backstage` root folder.
+Next, we need to attach our Container Registry to our AKS cluster. This will allow the AKS cluster to pull the Docker images from the ACR.
+
+<div class="task" data-title="Task">
+
+> To attach the Container Registry to the AKS cluster, run the following command from your **Backstage root directory**.
+</div>
+
+```shell
+az aks update --name <your aks name> --resource-group <your aks resource group> --attach-acr backstageacr<your initals>
+```
+
+We now need to copy the folder `terraform/charts/backstage` from the `misc` folder to the `backstage` root folder.
 
 <div class="task" data-title="Task">
 
@@ -1939,7 +1948,7 @@ We now need to copy the folder `terraform/backstagechart` from the `misc` folder
 </div>
 
 ```shell
-copy ../misc/backstagechart ./backstage/backstagechart 
+copy ../misc/charts/backstage ./backstage/charts/backstage 
 ```
 
 <div class="task" data-title="Task">
