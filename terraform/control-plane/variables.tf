@@ -17,6 +17,12 @@ variable "location" {
   default     = "usgovvirginia"
 }
 
+variable "acr_name" {
+  description = "Specifies the name of the Azure Container Registry."
+  type        = string
+  default     = "controlplaneacr"  
+}
+
 variable "agents_size" {
   description = "Specifies the default virtual machine size for the Kubernetes agents"
   default     = "Standard_D2s_v3"

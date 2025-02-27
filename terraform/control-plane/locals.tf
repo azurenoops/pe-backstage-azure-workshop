@@ -3,7 +3,7 @@ locals {
   environment = "control-plane"
   location    = var.location
   resource_group_name = "${var.resource_group_name}-<your intitals>"
-
+  acr_name = "${var.acr_name}<your intitals>"
   #cluster_version = var.kubernetes_version
 
   gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
