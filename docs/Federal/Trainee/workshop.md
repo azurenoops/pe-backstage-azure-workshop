@@ -1711,121 +1711,7 @@ Now that you have access to the ArgoCD UI, you can manage the applications deplo
 
 Let's add our local instance of Backstage to ArgoCD and the Control Plane cluster.
 
-## Step 5 - Create a Azure Container Registry
-
-In this step, we will create an Azure Container Registry (ACR) to store the Docker images for our local instance Backstage app. The Control Plane Kubernetes cluster will pull the Docker images from the ACR. We will create the ACR outside the Terraform scripts, as we will need to push our Backstage Docker image to the ACR.
-
-Since ACR should be unique, we want to see if there is an ACR already created.
-
-<div class="task" data-title="Task">
-
-> To list the ACRs in your resource group, run the following command from your **Backstage root directory**.
-</div>
-
-```shell
-az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{Name:name}" -o table
-```
-
-If you see the ACR name, then the ACR is alredy created. If it not in the output, then we will create the ACR.
-
-<div class="task" data-title="Task">
-
-> To create an Azure Container Registry, run the following command from your **Backstage root directory**. 
-
-</div>
-
-```shell
-az acr create --resource-group rg-pe-aks-gitops-<your initals> --name backstageacr<your initals> --sku Basic
-```
-
-<div class="tip" data-title="Tip">
-
-> The ACR name must be unique across Azure. You can use the following command to get the ACR name.
-
-</div>
-
-This is what you should have so far:
-
-![Azure-Container-Registry](./assets/lab2-controlplane/azure-container-registry.png)
-
-Now, we will get the ACR login server.
-
-<div class="task" data-title="Task">
-
-> To get the ACR login server, run the following command:
-
-</div>
-
-```shell
-az acr list --resource-group rg-pe-aks-gitops-<your initals> --query "[].{LoginServer:loginServer}" -o table
-```
-
-You should see the following output:
-
-```shell
-LoginServer
---------------------------
-backstageacrjrs.azurecr.us
-```
-
-<div class="tip" data-title="Tips">
-
-> Note: The ACR login server is used to push the Docker images to the ACR. You will need this later.
-
-</div>
-
-## Step 6 - Create a Service Principal
-
-In this step, we will create a Service Principal to access the ACR. The Service Principal will be used to push the Docker images to the ACR.
-
-<div class="task" data-title="Task">
-
-> To create a Service Principal, run the following command from your **Backstage root directory**:
-
-</div>
-
-```shell
-az ad sp create-for-rbac --name backstage-sp --role acrpush --scopes /subscriptions/<your subscription id>/resourceGroups/rg-pe-aks-gitops-<your initials>/providers/Microsoft.ContainerRegistry/registries/<your acr name>
-```
-
-<div class="tip" data-title="Tips">
-
-> Note: The Service Principal name must be unique across Azure. You can use the following command to get the Service Principal name:
-</div>
-
-```shell
-az ad sp list --display-name backstage-sp --query "[].{Name:displayName}" -o table
-```
-
-<div class="task" data-title="Task">
-
-> To get the Service Principal ID, run the following command:
-</div>
-
-```shell
-az ad sp list --display-name backstage-sp --query "[].{Id:id}" -o table
-```
-
-<div class="tip" data-title="Tip">
-
-> Note: The Service Principal ID is used to push the Docker images to the ACR. You will need this later.
-</div>
-
-<div class="task" data-title="Task">
-
-> To get the Service Principal password, run the following command:
-</div>
-
-```shell
-az ad sp credential reset --name backstage-sp --query "{password:password}" -o table
-```
-
-<div class="tip" data-title="Tip"`>
-
-> Note: The Service Principal password is used to push the Docker images to the ACR. You will need this later.
-</div>
-
-## Step 7 - Build the Backstage Dockerfile
+## Step 5 - Build the Backstage Dockerfile
 
 In this step, we will build the Backstage Dockerfile. The Dockerfile is used to build the Docker image for our local instance of Backstage app. First we need to tighten up our `app-config.yaml` file to update our `app.baseUrl` so it will be ready to deploy our application outside of our local environment. This is to avoid CORS policy issues once deployed on AKS.
 
@@ -2012,7 +1898,7 @@ Once this has completed we should see our image in our registry.
 
 Now, we can add our Backstage instance to ArgoCD and the Control Plane cluster.
 
-## Step 8 - Adding Backstage to ArgoCD
+## Step 6 - Adding Backstage to ArgoCD
 
 In this step, we will add our local instance of Backstage to ArgoCD. This will allow us to manage the Backstage instance using ArgoCD. To deploy Backstage, you can use the provided Terraform scripts. The scripts are located in the `terraform/backstage` folder. The scripts will deploy Backstage to the AKS cluster.
 
