@@ -16,14 +16,14 @@ env:
   K8S_CLUSTER_URL: "https://your-cluster-url"
   K8S_SERVICE_ACCOUNT_TOKEN: "token"
   GITHUB_TOKEN: "token"
-  GITOPS_REPO: "https://github.com/azurenoops/pe-backstage=azure-workshop"
+  GITOPS_REPO: "https://github.com/azurenoops/pe-backstage-azure-workshop"
   
 
 
 replicaCount: 1
 
 image:
-  repository: <oowcontainerimages.azurecr.io/backstage>
+  repository: <backstageacrjrs.azurecr.us/backstage>
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: <tag>

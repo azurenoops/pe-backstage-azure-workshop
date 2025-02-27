@@ -162,21 +162,23 @@ resource "azurerm_public_ip" "backstage_public_ip" {
 # Backstage: Service Account & Secret
 ################################################################################
 resource "kubernetes_namespace" "backstage_nammespace" {
+  count = local.helm_release ? 1 : 0
   metadata {
     name = "backstage"
   }
 }
 resource "kubernetes_service_account" "backstage_service_account" {
+  count      = local.helm_release ? 1 : 0
   depends_on = [kubernetes_namespace.backstage_nammespace]
   metadata {
     name      = "backstage-service-account"
     namespace = "backstage"
-
   }
 
 }
 
 resource "kubernetes_role" "backstage_pod_reader" {
+  count      = local.helm_release ? 1 : 0
   depends_on = [kubernetes_service_account.backstage_service_account]
   metadata {
     name      = "backstage-pod-reader"
@@ -201,6 +203,7 @@ resource "kubernetes_role" "backstage_pod_reader" {
 }
 
 resource "kubernetes_role_binding" "backstage_role_binding" {
+  count      = local.helm_release ? 1 : 0
   depends_on = [kubernetes_role.backstage_pod_reader]
   metadata {
     name      = "backstage-role-binding"
@@ -210,24 +213,25 @@ resource "kubernetes_role_binding" "backstage_role_binding" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
-    name      = kubernetes_role.backstage_pod_reader.metadata[0].name
+    name      = kubernetes_role.backstage_pod_reader[0].metadata[0].name
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.backstage_service_account.metadata[0].name
-    namespace = kubernetes_service_account.backstage_service_account.metadata[0].namespace
+    name      = kubernetes_service_account.backstage_service_account[0].metadata[0].name
+    namespace = kubernetes_service_account.backstage_service_account[0].metadata[0].namespace
   }
 }
 
 resource "kubernetes_secret" "backstage_service_account_secret" {
+  count      = local.helm_release ? 1 : 0
   depends_on = [kubernetes_service_account.backstage_service_account]
   metadata {
     annotations = {
-      "kubernetes.io/service-account.name" = kubernetes_service_account.backstage_service_account.metadata[0].name
+      "kubernetes.io/service-account.name" = kubernetes_service_account.backstage_service_account[0].metadata[0].name
     }
     name      = "backstage-service-account-secret"
-    namespace = kubernetes_service_account.backstage_service_account.metadata[0].namespace
+    namespace = kubernetes_service_account.backstage_service_account[0].metadata[0].namespace
   }
 
   type                           = "kubernetes.io/service-account-token"
@@ -244,14 +248,14 @@ resource "kubernetes_secret" "tls_secret" {
 
   metadata {
     name      = "my-tls-secret"
-    namespace = kubernetes_namespace.backstage_nammespace.metadata[0].name
+    namespace = kubernetes_namespace.backstage_nammespace[0].metadata[0].name
   }
 
   type = "kubernetes.io/tls"
 
   data = {
-    "tls.crt" = file("tls.crt") # Adjust the path accordingly
-    "tls.key" = file("tls.key") # Adjust the path accordingly
+    "tls.crt" = file("certs/tls.crt") # Adjust the path accordingly
+    "tls.key" = file("certs/tls.key") # Adjust the path accordingly
   }
 }
 
@@ -259,16 +263,17 @@ resource "helm_release" "backstage" {
   count      = var.helm_release ? 1 : 0
   depends_on = [kubernetes_secret.tls_secret]
   name       = "backstage"
+  repository = "oci://backstageacr<your intitals>.azurecr.us"
   chart      = "backstagechart"
   version    = "1.0.0"
 
   set {
     name  = "image.repository"
-    value = "backstageacrjrs.azurecr.us/backstage"
+    value = "backstageacr<your intitals>.azurecr.us/backstage"
   }
   set {
     name  = "image.tag"
-    value = "v2"
+    value = "v1"
   }
   set {
     name  = "env.K8S_CLUSTER_NAME"
@@ -282,7 +287,7 @@ resource "helm_release" "backstage" {
 
   set {
     name  = "env.K8S_SERVICE_ACCOUNT_TOKEN"
-    value = kubernetes_secret.backstage_service_account_secret.data.token
+    value = kubernetes_secret.backstage_service_account_secret[0].data.token
   }
 
   set {

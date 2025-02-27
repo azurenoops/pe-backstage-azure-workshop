@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }} 
   labels:
     {{- include "backstagechart.labels" . | nindent 4 }}
-    backstage.io/kubernetes-id: {{ .Values.labels.kubernetesId }}
+    backstagechart.io/kubernetes-id: {{ .Values.labels.kubernetesId }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
       labels:
         {{- include "backstagechart.selectorLabels" . | nindent 8 }}
-        backstage.io/kubernetes-id: {{ .Values.labels.kubernetesId }}
+        backstagechart.io/kubernetes-id: {{ .Values.labels.kubernetesId }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

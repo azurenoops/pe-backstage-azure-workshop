@@ -27,10 +27,18 @@ variable "tags" {
 
 # AKS Cluster
 
+# AKS Cluster
+
+variable "aks_resource_group" {
+  description = "Specifies the name of the resource group for the AKS cluster."
+  type        = string
+  default     = "rg-pe-aks-gitops"
+}
+
 variable "aks_node_resource_group" {
   description = "Specifies the name of the resource group for the AKS nodes."
   type        = string
-  default     = "rg-pe-aks-gitops"
+  default     = "MC_pe-aks-gitops"
 }
 
 variable "aks_name" {
