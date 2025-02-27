@@ -78,6 +78,10 @@ module "aks" {
     "Agent" : "defaultnodepoolagent"
   }
 
+  attached_acr_id_map = {
+    "acr" = azurerm_container_registry.acr.id
+  }
+
   network_policy             = var.network_policy
   net_profile_dns_service_ip = var.net_profile_dns_service_ip
   net_profile_service_cidr   = var.net_profile_service_cidr
@@ -85,6 +89,86 @@ module "aks" {
   network_contributor_role_assigned_subnet_ids = { "aks" = lookup(module.network.vnet_subnets_name_id, "aks") }
 
   depends_on = [module.network]
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                = local.acr_name
+  resource_group_name = azurerm_resource_group.this.name
+  location            = local.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+################################################################################
+# Key Vault: Module
+################################################################################
+# Create the Azure Key Vault
+resource "azurerm_key_vault" "key_vault" {
+  name                = "kv-pe-aks-gitops"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.this.name
+
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  sku_name  = "standard"
+
+  network_acls {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+  }
+}
+
+# Create a Default Azure Key Vault access policy with Admin permissions
+# This policy must be kept for a proper run of the "destroy" process
+resource "azurerm_key_vault_access_policy" "default_policy" {
+  key_vault_id = azurerm_key_vault.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  key_permissions         = ["backup", "create", "decrypt", "delete", "encrypt", "get", "import", "list", "purge",
+  "recover", "restore", "sign", "unwrapKey", "update", "verify", "wrapKey"]
+  secret_permissions      = ["backup", "delete", "get", "list", "purge", "recover", "restore", "set"]
+  certificate_permissions = ["create", "delete", "deleteissuers", "get", "getissuers", "import", "list", "listissuers",
+  "managecontacts", "manageissuers", "purge", "recover", "setissuers", "update", "backup", "restore"]
+  storage_permissions     = ["backup", "delete", "deletesas", "get", "getsas", "list", "listsas",
+  "purge", "recover", "regeneratekey", "restore", "set", "setsas", "update"]
+}
+
+# Key Vault Secrets - ACR username & password
+resource "azurerm_key_vault_secret" "kv_secret_docker_password" {
+  name         = "acr-docker-password"
+  value        = azurerm_container_registry.acr.admin_password
+  key_vault_id = azurerm_key_vault.key_vault.id
+  content_type = ""
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+  depends_on = [azurerm_key_vault_access_policy.default_policy]
+}
+
+resource "azurerm_key_vault_secret" "kv_secret_docker_username" {
+  name         = "acr-docker-username"
+  value        = azurerm_container_registry.acr.admin_username
+  key_vault_id = azurerm_key_vault.key_vault.id
+  content_type = ""
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+
+  depends_on = [azurerm_key_vault_access_policy.default_policy]
 }
 
 ################################################################################

@@ -1398,6 +1398,24 @@ cd terraform/control-plane
 
 <div class="task" data-title="Task">
 
+> Set your azure region to `eastus` by updating the variable in the `variables.tf` file located in the `terraform/control-plane` folder.
+</div>
+
+```shell
+variable "location" {
+  description = "Specifies the the location for the Azure resources."
+  type        = string
+  default     = "eastus"
+}
+```
+
+<div class="tip" data-title="Tip">
+
+> If you are in the **Azure Government** region, you can set the region to `usgovvirginia`.
+</div>
+
+<div class="task" data-title="Task">
+
 > Update the resource group name in the `locals.tf` file located in the `terraform/control-plane` folder with your initials.
 </div>
 
@@ -1406,7 +1424,8 @@ locals {
   ---taken out for brevity---
 
   resource_group_name = "${var.resource_group_name}-<your intitals>"
-  
+  acr_name = "${var.acr_name}<your intitals>"
+
   ---taken out for brevity---
 }
 ```
@@ -1815,17 +1834,6 @@ catalog:
 
 </div>
 
-Next, we need to attach our Container Registry to our AKS cluster. This will allow the AKS cluster to pull the Docker images from the ACR.
-
-<div class="task" data-title="Task">
-
-> To attach the Container Registry to the AKS cluster, run the following command from your **Backstage root directory**.
-</div>
-
-```shell
-az aks update --name <your aks name> --resource-group <your aks resource group> --attach-acr backstageacr<your initals>
-```
-
 We now need to copy the folder `terraform/charts/backstage` from the `misc` folder to the `backstage` root folder.
 
 <div class="task" data-title="Task">
@@ -1927,7 +1935,9 @@ Now we need to update `locals.tf` with the following configuration:
 # On Line 5 in terraform/backstage/locals.tf
 locals {
   ---taken out for brevity---
+  
   resource_group_name = "${var.resource_group_name}-<your intitals>"
+
   ---taken out for brevity---
 }
 ```
@@ -1942,6 +1952,24 @@ Now we are ready to deploy Backstage components to the Azure.
 ```shell
 cd terraform/backstage
 ```
+
+<div class="task" data-title="Task">
+
+> Set your azure region to `eastus` by updating the variable in the `variables.tf` file located in the `terraform/control-plane` folder.
+</div>
+
+```shell
+variable "location" {
+  description = "Specifies the the location for the Azure resources."
+  type        = string
+  default     = "eastus"
+}
+```
+
+<div class="tip" data-title="Tip">
+
+> If you are in the **Azure Government** region, you can set the region to `usgovvirginia`.
+</div>
 
 <div class="task" data-title="Task">
 
