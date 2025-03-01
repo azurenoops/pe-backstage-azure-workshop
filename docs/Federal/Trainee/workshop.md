@@ -556,45 +556,37 @@ Now that you have run Backstage successfully, you can push the code to GitHub. T
 
 <div class="task" data-title="Task">
 
-> Go to `Source Control` tab in VSCode, and right click on the `Changes` and click on `Stage All Changes`.
+> Go to `Source Control` tab in VSCode.
 
 </div>
 
-![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-staged.png)
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-source.png)
+
+<div class="task" data-title="Task">
+
+> Right click on the `Changes` and click on `Stage All Changes`.
+
+</div>
+
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-stage.png)
 
 <div class="task" data-title="Task">
 
 > Then add in a commit message and click on `Commit`.
 </div>
 
-![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-commit.png)
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-commit.png)
 
 <div class="task" data-title="Task">
 
-> Now go your repository in Github and click on `Pull Requests` tab.
+> Then click on the `Stage Changes` to push the changes to GitHub.
 </div>
 
-![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-push.png)
+![backstage-github-org](./assets/lab1-installbackstage/backstage-github-stage-changes.png)
 
-<div class="task" data-title="Task">
+You have completed the first lab. You have now a new Backstage app, configured the app, and enabled GitHub authentication to Backstage. You have also enabled GitHub Org data to Backstage.
 
-> Then click on `New Pull Request` button.
-
-</div>
-
-![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-pr.png)
-
-<div class="task" data-title="Task">
-
-> Then click on `Create Pull Request` button.
-
-</div>
-
-![backstage-github-org](./assets/lab1-installbackstage/backstage-github-org-pr-create.png)
-
-You have completed the first lab. You have created a new Backstage app, explored the app, configured the app, and added GitHub authentication to Backstage. You have also added GitHub Org data to Backstage.
-
-In the next lab, we will focus on Day 1 operations, deploying the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform.
+In the next lab, we will focus on Day 1 operations, deploying the Control Plane on Azure Kubernetes Service (AKS) using Terraform.
 
 ---
 
