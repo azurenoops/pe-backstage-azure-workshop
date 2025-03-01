@@ -533,25 +533,11 @@ The yarn dev command will run both the frontend and backend as separate processe
 window. When the command finishes running, it should open up a browser window displaying your app. If not, you can open
 a browser and directly navigate to the frontend at `http://localhost:3000`.
 
-This will start the Backstage app and open a new tab in your browser. You should see the Backstage app with the GitHub authentication provider.
-
-![backstage-login-github](./assets/lab1-installbackstage/backstage-login-github.png)
-
-Accept the permissions and you should be redirected to the Backstage app.
+This will start the Backstage app and open a new tab in your browser. Accept the permissions and you should be redirected to the Backstage app.
 
 ![backstage-home](./assets/lab1-installbackstage/backstage-accept-perms-github.png)
 
 After the accepting the permissions, you should see the Backstage home page with the GitHub Org data.
-
-![backstage-home](./assets/lab1-installbackstage/backstage-home.png)
-
-<div class="tip" data-title="Tip">
-
-> Depending on how many times you use the app, the app may login automaticaly where you will not see the `Guest login`. In later labs, we will add authentication to the app.
-
-</div>
-
-When you click `Enter`, It should open up a new tab in the browser and should look like this (it will take some time to load the UI):
 
 ![backstage-home](./assets/lab1-installbackstage/backstage-home.png)
 
