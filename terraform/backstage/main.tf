@@ -39,114 +39,6 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_all" {
 }
 
 ################################################################################
-# Identity: Module
-################################################################################
-
-resource "azuread_application" "backstage-app" {
-  display_name = "Backstage"
-
-  app_role {
-    id                   = uuid() # Generate a unique ID for the role
-    allowed_member_types = ["User"]
-    description          = "Allows the app to read the profile of signed-in users."
-    display_name         = "User.Read"
-    value                = "User.Read"
-  }
-
-  app_role {
-    id                   = uuid() # Generate a unique ID for the role
-    allowed_member_types = ["User"]
-    description          = "Allows the app to read all users' full profiles."
-    display_name         = "User.Read.All"
-    value                = "User.Read.All"
-  }
-
-  app_role {
-    id                   = uuid() # Generate a unique ID for the role
-    allowed_member_types = ["User"]
-    description          = "Allows the app to read the memberships of all groups."
-    display_name         = "GroupMember.Read.All"
-    value                = "GroupMember.Read.All"
-  }
-
-  required_resource_access {
-    resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph API
-
-    resource_access {
-      id   = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # User.Read
-      type = "Scope"
-    }
-
-    resource_access {
-      id   = "df021288-bdef-4463-88db-98f22de89214" # User.Read.All
-      type = "Role"
-    }
-
-    resource_access {
-      id   = "98830695-27a2-44f7-8c18-0c3ebc9698f6" # GroupMember.Read.All
-      type = "Role"
-    }
-
-    resource_access {
-      id   = "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0" # email
-      type = "Scope"
-    }
-
-    resource_access {
-      id   = "7427e0e9-2fba-42fe-b0c0-848c9e6a8182" # offline_access
-      type = "Scope"
-    }
-
-    resource_access {
-      id   = "e383f46e-2787-4529-855e-0e479a3ffac0" # mail.send
-      type = "Scope"
-    }
-
-    resource_access {
-      id   = "37f7f235-527c-4136-accd-4a02d197296e" # openid
-      type = "Scope"
-    }
-  }
-}
-
-
-# Define the OAuth2 permissions (redirect URIs)
-resource "azuread_application_redirect_uris" "backstage_redirect_uri" {
-  application_id = "/applications/${azuread_application.backstage-app.object_id}"
-  type           = "Web"
-  redirect_uris  = ["https://${azurerm_public_ip.backstage_public_ip.ip_address}/api/auth/microsoft/handler/frame"]
-}
-# Define the service principal
-resource "azuread_service_principal" "backstage-app-sp" {
-  client_id = azuread_application.backstage-app.application_id
-}
-
-# Define the service principal password
-resource "azuread_service_principal_password" "backstage-sp-password" {
-  service_principal_id = azuread_service_principal.backstage-app-sp.id
-  end_date             = "2099-01-01T00:00:00Z"
-}
-
-resource "null_resource" "ascii_art" {
-  depends_on = [azuread_service_principal_password.backstage-sp-password]
-  provisioner "local-exec" {
-    command = <<EOT
-echo "    _      _     ______  _____   _______ "
-echo "   / \\   | |   |  ____||  __ \\|__   __|"
-echo "  / _ \\  | |   | |__   | |__) |   | |   "
-echo " / ___ \\ | |   |  __|  |  _  /    | |   "
-echo "/_/   \\_\|_|___| |____ | | \\\    | |   "
-echo "        \\_\\_____|______||_| \_\  |_|   "
-echo ""
-echo ""
-echo "Please grant admin consent on app registration now to avoid waiting for the 1 hour schedule post backstage chart deployment."
-echo "This can be done through the Azure portal at the following location: Entra - App registrations - Backstage - API Permissions - <click> Grant admin consent"
-echo " This can also be done using the CLI with the following command: az ad app permission admin-consent --id <ApplicationId>"
-EOT
-  }
-}
-
-################################################################################
 # AKS: Public IP for predictable backstage service & redirect URI
 ################################################################################
 
@@ -254,8 +146,8 @@ resource "kubernetes_secret" "tls_secret" {
   type = "kubernetes.io/tls"
 
   data = {
-    "tls.crt" = file("certs/tls.crt") # Adjust the path accordingly
-    "tls.key" = file("certs/tls.key") # Adjust the path accordingly
+    "tls.crt" = file("tls.crt") # Adjust the path accordingly
+    "tls.key" = file("tls.key") # Adjust the path accordingly
   }
 }
 
