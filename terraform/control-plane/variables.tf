@@ -106,7 +106,7 @@ variable "gitops_addons_revision" {
 variable "gitops_addons_basepath" {
   description = "Specifies the Git repository base path for addons."
   type        = string
-  default     = "terraform/aks/gitops/" # ending slash is important!
+  default     = "terraform/control-plane/gitops/" # ending slash is important!
 }
 variable "gitops_addons_path" {
   description = "Specifies the Git repository path for addons."

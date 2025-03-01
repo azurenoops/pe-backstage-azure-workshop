@@ -592,7 +592,7 @@ In the next lab, we will focus on Day 1 operations, deploying the Control Plane 
 
 # Lab 2 - Deploy Control Plane on Azure
 
-Mastering both Day 1 and Day 2 operations is crucial for platform, and DevOps engineers to ensure smooth operations in platform engineering.
+Mastering both Day 1 and Day 2 operations is crucial for platform, and DevOps engineer team to ensure smooth operations in platform engineering.
 
 Day 1 operations involve the initial setup and configuration of the platform, while Day 2 operations focus on maintenance, updates, responding to incidents, and scaling. We will focus on Day 1 operations in this lab. Setting up the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform. The Platform Engineering team is responsible for both Day 1 and Day 2 operations of the platform.
 

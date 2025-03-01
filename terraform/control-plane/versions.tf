@@ -27,7 +27,6 @@ terraform {
 data "azurerm_client_config" "current" {}
 
 provider "azurerm" {
-  environment = "usgovernment"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
