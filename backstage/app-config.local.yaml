@@ -43,7 +43,7 @@ integrations:
   github:
     - host: github.com
       apps:
-        - appId: ${APP_ID}
+        - appId: ${GITHUB_APP_ID}
           clientId: ${GITHUB_CLIENT_ID}
           clientSecret: ${GITHUB_CLIENT_SECRET}
           privateKey: ${GITHUB_PRIVATEKEY}

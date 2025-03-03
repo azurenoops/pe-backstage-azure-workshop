@@ -17,11 +17,12 @@ navigation_levels: 3
 
 # Product Hands-on Lab - Platform engineering with Backstage and Azure Kubernetes Service
 
-Welcome to this Platform engineering with Backstage Workshop. At its core, platform engineering is about constructing a solid and adaptable groundwork that simplifies and accelerates the development, deployment, and operation of software applications. The goal is to abstract the complexity inherent in managing infrastructure and operational concerns, enabling dev teams to focus on crafting code that adds direct value to the mission.
+Welcome to this Platform engineering with Backstage and Azure Kubernetes Service Workshop. At its core, platform engineering is about constructing a solid and adaptable groundwork that simplifies and accelerates the development, deployment, and operation of software applications. The goal is to abstract the complexity inherent in managing infrastructure and operational concerns, enabling dev teams to focus on crafting code that adds direct value to the developers.
 
 In order to comprehend real-world situations, you will be testing with serveral different toos and services in several labs. You will be able to learn how to deploy and manage Azure resources, as well as how to use Azure services to build and deploy applications with the help of AKS, GitHub and Backstage. Don't worry; you will be walked through the entire procedure in this step-by-step lab.
 
 This lab leverages the [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev/gitops-bridge?tab=readme-ov-file). The following diagram shows the high-level architecture of the solution from [platformengineering.org](https://platformengineering.org/):
+
 ![GitOps Bridge Pattern](./assets/lab0-prerequisites/gitops-bridge-pattern.png)
 
 The tools in this lab to build out your Integrated Development Platform (IDP) include:
@@ -37,11 +38,11 @@ The tools in this lab to build out your Integrated Development Platform (IDP) in
 
 <div class="tip" data-title="Tip">
 
-> All tools in this lab are opinionated and used to show how to build out an IDP. You can use other tools to build out your IDP.
+> All tools in this lab are opinionated and used to show how to build out an Internal Development Platform (IDP). You can use other tools to build out your Internal Development Platform (IDP).
 
 </div>
 
-If you follow all instructions, you should have your own IDP running by the end of this lab!
+If you follow all instructions, you should have your own Internal Development Platform (IDP) running by the end of this lab!
 
 ## Pre-requisites
 
@@ -56,6 +57,13 @@ Before starting this lab, be sure to set your Azure environment :
 `Microsoft.App`,
 `Microsoft.KeyVault`,
 
+<div class="tip" data-title="Tip">
+
+> **NOTE:** If you are using a Microsoft Azure Government subscription, you will need check if the following providers exist in your subscription:
+> - Microsoft.AppPlatform
+
+</div>
+
 To be able to do the lab content you will also need:
 
 - Basic understanding of Azure resources which includes Azure Kubernetes Service (AKS), Azure Container Registry (ACR), Azure Key Vault.
@@ -69,8 +77,8 @@ To be able to do the lab content you will also need:
 
 2 development options are available:
 
-- 🥈 **Preferred method** : Local Devcontainer
-- 🥉 Local Dev Environment with all the prerequisites detailed below
+1. **Preferred method** : Local Devcontainer
+2. Local Dev Environment with all the prerequisites detailed below
 
 <div class="tip" data-title="Tips">
 
@@ -88,7 +96,7 @@ Here are the required tools to do so :
 - [Docker Desktop][docker-desktop] running
 - [Visual Studio Code][vs-code] installed
 
-Start by cloning the Hands-on Lab [Platform engineering with BackStage repo][repo-clone] you just forked on your local Machine and open the local folder in Visual Studio Code.
+After you forked the repo, start by cloning the Hands-on Lab [Platform Engineering with BackStage repo][repo-clone] you just forked on your local Machine and open the local folder in Visual Studio Code.
 Once you have cloned the repository locally, make sure Docker Desktop is up and running and open the cloned repository in Visual Studio Code.  
 
 You will be prompted to open the project in a Dev Container. Click on `Reopen in Container`.
@@ -106,7 +114,7 @@ The following tools and access will be necessary to run the lab in good conditio
 - [Azure CLI][az-cli-install] installed on your machine
 - [Terraform][terraform-install] installed, this will be used for deploying the resources on Azure
 
-Once you have set up your local environment, you can clone the Hands-on Lab Platform engineering with BackStage repo you just forked on your machine, and open the local folder in Visual Studio Code and head to the next step.
+Once you have set up your local environment, and after you forked the repo, you can clone the Hands-on Lab [Platform Engineering with BackStage repo][repo-clone] on your machine, and open the local folder in Visual Studio Code and head to the next step.
 
 ## 🔑 Sign in to Azure
 
@@ -118,12 +126,15 @@ Once you have set up your local environment, you can clone the Hands-on Lab Plat
 
 ```bash
 # Login to Azure : 
-# --tenant : Optional | In case your Azure account has access to multiple tenants
 
-# Option 1 : Local Environment or Dev Container
+# Cloud setting : Optional | In case your Azure account has access to multiple clouds
+# Azure Commercial
+az cloud set --name AzureCloud
+# Azure Government
+az cloud set --name AzureUSGovernment
+
+# Local Environment or Dev Container --tenant : Optional | In case your Azure account has access to multiple tenants
 az login --tenant <yourtenantid or domain.com>
-# Option 2 : Github Codespace : you might need to specify --use-device-code parameter to ease the az cli authentication process
-az login --use-device-code --tenant <yourtenantid or domain.com>
 
 # Display your account details
 az account show
@@ -163,11 +174,11 @@ To create a GitHub organization, follow these steps:
 1. Go to GitHub and sign in to your account.
 2. In the top right corner of the page, click on your profile picture, and then click on Your organizations.
 3. In the top right corner of the page, click on the New organization button.
-![github-org-profile](./assets/lab1-installbackstage/github-org-1.png)
+![github-org-profile](./assets/lab0-prerequisites/github-org-1.png)
 4. Fill in the following fields:
    - **Organization name:** `Backstage-<your-github-username>`
    - **Billing plan:** Free
-![github-org-free0org](./assets/lab1-installbackstage/github-org-2.png)
+![github-org-free0org](./assets/lab0-prerequisites/github-org-2.png)
 5. Click on the **Create organization** button.
 
 ### Add People to the Organization
@@ -176,12 +187,12 @@ Now that you have created the organization, you will need to add yourself as a m
 
 1. In the toolbar of the organization, click on **People**.
 2. In the **People** section, click on the **Invite member** button.
-![github-org-poeple](./assets/lab1-installbackstage/github-org-3.png)
+![github-org-poeple](./assets/lab0-prerequisites/github-org-3.png)
 3. Fill in the following fields:
    - **Email address:** <your email address>
    - **Role:** Owner
 4. Click on the **Invite** button.
-![github-org-invite](./assets/lab1-installbackstage/github-org-4.png)
+![github-org-invite](./assets/lab0-prerequisites/github-org-4.png)
 
 ### Create a Team in the Organization
 
@@ -189,7 +200,7 @@ Finally, you will need to create a team in the organization.
 
 1. In the left sidebar, click on **Teams**.
 2. In the **Teams** section, click on the **New Team** button.
-![github-org-team](./assets/lab1-installbackstage/github-org-team.png)
+![github-org-team](./assets/lab0-prerequisites/github-org-team.png)
 3. Fill in the following fields in the **Create a team** form:
    - **Team name:** Platform Engineering
    - **Description:** Platform Engineering team  
@@ -244,7 +255,7 @@ This command will guide you through the process of creating a GitHub App.
 Select 'A' for all permissions.
 ```
 
-![github-app-cli](./assets/lab1-installbackstage/github-app-cli.png)
+![github-app-cli](./assets/lab0-prerequisites/github-app-cli.png)
 
 A new window will open in your browser where you can create the GitHub App.
 
@@ -263,11 +274,11 @@ A new window will open in your browser where you can create the GitHub App.
 GitHub App name: Backstage-'<'your org name'>'
 ```
 
-![github-app-name](./assets/lab1-installbackstage/github-app-name.png)
+![github-app-name](./assets/lab0-prerequisites/github-app-name.png)
 
 Once you've gone through the CLI command, it should produce a YAML file in the root of the project which you can then use as an include in your `github-app-config.yaml`.
 
-![github-app-name](./assets/lab1-installbackstage/github-app-creds.png)
+![github-app-name](./assets/lab0-prerequisites/github-app-creds.png)
 
 #### Export the GitHub variables
 
@@ -278,16 +289,13 @@ Once you've gone through the CLI command, it should produce a YAML file in the r
 </div>
 
 ```shell
+export "GITHUB_APP_ID=<your-github-app-id>"
 export "GITHUB_APP_ID=<your-github-app-id>" 
 export "GITHUB_CLIENT_ID=<your-github-client-id>"
-export "GITHUB_CLIENT_SECRET=<your-github-client-secret>" 
+export "GITHUB_CLIENT_SECRET=<your-github-client-secret>"
+export "GITHUB_WEBHOOK_SECRET =<your-github-webhook-secret>"
+export "GITHUB_APP_PRIVATE_KEY=<your-github-app-private-key>" 
 ```
-
-<div class="tip" data-title="Tip">
-
-> You will get errors if you do not have the `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, and `GITHUB_CLIENT_SECRET` in your `environments.sh` file and you have not exported them.
-
-</div>
 
 <div class="task" data-title="Task">
 
@@ -305,7 +313,7 @@ Next, we need to conmfigure permissions on our GitHub App. The GitHub App permis
 
 </div>
 
-![github-app-settings](./assets/lab1-installbackstage/github-app-settings.png)
+![github-app-settings](./assets/lab0-prerequisites/github-app-settings.png)
 
 First we need to configure the homepage and callback URL for the GitHub App.
 
@@ -325,7 +333,7 @@ First we need to configure the homepage and callback URL for the GitHub App.
 
 </div>
 
-![github-app-permissions](./assets/lab1-installbackstage/github-app-permissions.png)
+![github-app-permissions](./assets/lab0-prerequisites/github-app-permissions.png)
 
 <div class="task" data-title="Task">
 
@@ -366,6 +374,8 @@ To be able to use GitHub in the lab, you will need to create a GitHub Personal A
 
 In GitHub, in the top right corner, click on your profile image, and then select Settings. On the left sidebar, select Developer settings > Personal access tokens > Fine-grained tokens, select Generate new token.
 
+![github-pat](./assets/lab0-prerequisites/github-pat.png)
+
 On the New fine-grained personal access token page, provide the following information:
 
 Set a descriptive name for the token, an expiration date to 30 days, and select the following permissions:
@@ -392,6 +402,7 @@ export "GITHUB_TOKEN=<your-github-pat>"
 [repo-clone]: https://github.com/azurenoops/pe-backstage-azure-workshop.git
 [vs-code]: https://code.visualstudio.com/
 [GitHub]: http://github.com
+[docker-desktop]: https://www.docker.com/products/docker-desktop/
 
 ---
 
