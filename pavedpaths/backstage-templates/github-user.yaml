@@ -1,0 +1,64 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: add-github-users
+  title: Add Github Users
+  description: Add Github Users to Organization
+  tags:
+    - github
+    - infra
+    - users
+    - resource
+spec:
+  owner: group:platform-engineering
+  type: resource
+
+  parameters:
+    - title: Basic information
+      required:
+        - name
+        - email
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique Name used during creation of Github Account
+          ui:field: EntityNamePicker
+        email:
+          title: Email ID
+          type: string
+          description: Email of the user
+  steps:
+    - id: fetch-template
+      name: Fetch Github User Templates
+      action: fetch:template
+      # if: ${{ parameters.dryRun == false }}
+      input:
+        targetPath: ./users
+        url: https://URL OF THE TEMPLATE 
+        values:
+          name: ${{ parameters.name }}
+          email: ${{ parameters.email }}
+
+    - id: open-pr
+      name: "Open PR in GitOps Repository"
+      action: publish:github:pull-request
+      # if: ${{ parameters.dryRun == false }}
+      input:
+        repoUrl: github.com?repo=argocd-site-wide-applications
+        branchName: add-github-${{ parameters.name }}-user
+        title: ':robot: [backstage-bot] Add ${{ parameters.email }}-${{ parameters.name }}-user'
+        description: |
+          # New User: ${{ parameters.email }}
+        sourcePath: users
+        targetPath: releases/apps/github/prod/manifests/templates/users
+
+  output:
+    links:
+      - title: Go to GitOps Pull Request
+        url: ${{ steps.open-pr.output.remoteUrl }}
+      #- title: Go to GitOps Pull Request
+      #  url: ${{ steps.kube-pr.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

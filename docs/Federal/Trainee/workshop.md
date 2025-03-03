@@ -191,7 +191,7 @@ Finally, you will need to create a team in the organization.
 2. In the **Teams** section, click on the **New Team** button.
 ![github-org-team](./assets/lab1-installbackstage/github-org-team.png)
 3. Fill in the following fields in the **Create a team** form:
-   - **Team name:** Platform Engineering Team
+   - **Team name:** Platform Engineering
    - **Description:** Platform Engineering team  
    - **Visibility:** Visible
    - **Team notifications:** Enabled
@@ -495,7 +495,7 @@ spec:
 
 ## Step 4 - Run Backstage
 
-As soon as the app is created, start by running the app.
+Start by running the app.
 
 <div class="task" data-title="Task">
 
