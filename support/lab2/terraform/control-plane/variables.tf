@@ -23,6 +23,12 @@ variable "acr_name" {
   default     = "controlplaneacr"  
 }
 
+variable "kv_name" {
+  description = "Specifies the name of the Azure Key Vault."
+  type        = string
+  default     = "kv-pe-aks-gitops"  
+}
+
 variable "agents_size" {
   description = "Specifies the default virtual machine size for the Kubernetes agents"
   default     = "Standard_D2s_v3"

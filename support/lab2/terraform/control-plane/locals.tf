@@ -2,9 +2,10 @@ locals {
   name        = local.environment
   environment = "control-plane"
   location    = var.location
-  resource_group_name = "${var.resource_group_name}-<your intitals>"
-  acr_name = "${var.acr_name}<your intitals>"
-  #cluster_version = var.kubernetes_version
+  resource_group_name = "${var.resource_group_name}-jrs"
+  aks_prefix = "${var.prefix}-jrs"
+  acr_name = "${var.acr_name}jrs"
+  kv_name = "${var.kv_name}-jrs"
 
   gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
   gitops_addons_basepath = var.gitops_addons_basepath
@@ -46,7 +47,7 @@ locals {
 
   environment_metadata = {
     infrastructure_provider = var.infrastructure_provider
-    akspe_identity_id       = azurerm_user_assigned_identity.akspe.client_id
+    akspe_identity_id       = azurerm_user_assigned_identity.akspecp.client_id
     git_public_ssh_key      = var.git_public_ssh_key
   }
 
