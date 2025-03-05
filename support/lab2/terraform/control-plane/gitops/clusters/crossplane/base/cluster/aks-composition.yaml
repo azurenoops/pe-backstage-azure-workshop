@@ -378,7 +378,7 @@ spec:
                 source:    
                   repoURL: https://github.com/azurenoops/pe-backstage-azure-workshop
                   targetRevision: HEAD
-                  path: supportsupport/terraform/control-plane/gitops/bootstrap/workloads/infra
+                  path: support/terraform/control-plane/gitops/bootstrap/workloads/infra
                 syncPolicy:
                   automated: {}
                 destination:

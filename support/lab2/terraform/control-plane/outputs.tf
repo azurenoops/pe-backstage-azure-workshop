@@ -4,7 +4,7 @@ output "aks_name" {
 }
 
 output "aks_cluster_fqdn" {
-  value       = module.aks.aks_cluster_fqdn
+  value       = module.aks.cluster_fqdn
   description = "FQDN of the AKS cluster"
 }
 
@@ -30,6 +30,6 @@ output "rg_name" {
 }
 
 output "rg_location" {
-  value       = module.resource_group.location
+  value       = azurerm_resource_group.this.location
   description = "Location of the Resource Group"
 }

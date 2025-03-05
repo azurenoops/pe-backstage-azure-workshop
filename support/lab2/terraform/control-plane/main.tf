@@ -42,7 +42,7 @@ module "aks" {
   orchestrator_version                            = var.kubernetes_version
   role_based_access_control_enabled               = var.role_based_access_control_enabled
   rbac_aad                                        = var.rbac_aad
-  prefix                                          = var.prefix
+  prefix                                          = local.aks_prefix
   network_plugin                                  = var.network_plugin
   vnet_subnet_id                                  = lookup(module.network.vnet_subnets_name_id, "aks")
   os_disk_size_gb                                 = var.os_disk_size_gb
@@ -104,13 +104,14 @@ resource "azurerm_container_registry" "acr" {
 ################################################################################
 # Create the Azure Key Vault
 resource "azurerm_key_vault" "key_vault" {
-  name                = "kv-pe-aks-gitops"
+  name                = local.kv_name
   location            = local.location
   resource_group_name = azurerm_resource_group.this.name
 
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
 
   tenant_id = data.azurerm_client_config.current.tenant_id
   sku_name  = "standard"
@@ -119,69 +120,6 @@ resource "azurerm_key_vault" "key_vault" {
     default_action = "Allow"
     bypass         = "AzureServices"
   }
-}
-
-# Create a Default Azure Key Vault access policy with Admin permissions
-# This policy must be kept for a proper run of the "destroy" process
-resource "azurerm_key_vault_access_policy" "default_policy" {
-  key_vault_id = azurerm_key_vault.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-   key_permissions = [
-    "Backup",
-    "Create",
-    "Decrypt",
-    "Delete",
-    "Encrypt",
-    "Get",
-    "Import",
-    "List",
-    "Purge",
-    "Recover",
-    "Restore",
-    "Sign",
-    "UnwrapKey",
-    "Update",
-    "Verify",
-    "WrapKey",
-    "GetRotationPolicy",
-    "SetRotationPolicy",
-  ]
-
-  secret_permissions = [
-    "Backup",
-    "Delete",
-    "Get",
-    "List",
-    "Purge",
-    "Recover",
-    "Restore",
-    "Set",
-  ]
-
-  certificate_permissions = [
-    "Backup",
-    "Create",
-    "Delete",
-    "DeleteIssuers",
-    "Get",
-    "GetIssuers",
-    "Import",
-    "List",
-    "ListIssuers",
-    "ManageContacts",
-    "ManageIssuers",
-    "Purge",
-    "Recover",
-    "Restore",
-    "SetIssuers",
-    "Update",
-  ]
 }
 
 # Key Vault Secrets - ACR username & password
@@ -196,7 +134,8 @@ resource "azurerm_key_vault_secret" "kv_secret_docker_password" {
       tags,
     ]
   }
-  depends_on = [azurerm_key_vault_access_policy.default_policy]
+
+  depends_on = [ azurerm_role_assignment.rbac_key_vault ]
 }
 
 resource "azurerm_key_vault_secret" "kv_secret_docker_username" {
@@ -211,23 +150,32 @@ resource "azurerm_key_vault_secret" "kv_secret_docker_username" {
     ]
   }
 
-  depends_on = [azurerm_key_vault_access_policy.default_policy]
+  depends_on = [ azurerm_role_assignment.rbac_key_vault ]
+}
+
+################################################################################
+# Key Vault Identity: Module
+################################################################################
+resource "azurerm_role_assignment" "rbac_key_vault" {
+  scope                = azurerm_key_vault.key_vault.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 ################################################################################
 # Workload Identity: Module
 ################################################################################
 
-resource "azurerm_user_assigned_identity" "akspe" {
-  name                = "akspe"
+resource "azurerm_user_assigned_identity" "akspecp" {
+  name                = "akspecp"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
 }
 
-resource "azurerm_role_assignment" "akspe_role_assignment" {
+resource "azurerm_role_assignment" "akspecp_role_assignment" {
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Owner"
-  principal_id         = azurerm_user_assigned_identity.akspe.principal_id
+  principal_id         = azurerm_user_assigned_identity.akspecp.principal_id
 }
 
 resource "azurerm_federated_identity_credential" "crossplane" {
@@ -236,7 +184,7 @@ resource "azurerm_federated_identity_credential" "crossplane" {
   resource_group_name = azurerm_resource_group.this.name
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_url
-  parent_id           = azurerm_user_assigned_identity.akspe.id
+  parent_id           = azurerm_user_assigned_identity.akspecp.id
   subject             = "system:serviceaccount:crossplane-system:azure-provider"
 }
 

@@ -132,6 +132,8 @@ Once you have set up your local environment, and after you forked the repo, you 
 az cloud set --name AzureCloud
 # Azure Government
 az cloud set --name AzureUSGovernment
+# Set ARM environment variable
+export "ARM_ENVIRONMENT=usgovernment"
 
 # Local Environment or Dev Container --tenant : Optional | In case your Azure account has access to multiple tenants
 az login --tenant <yourtenantid or domain.com>
@@ -633,7 +635,7 @@ With the lab repository that you cloned in Lab 1, it comes with a pre-defined Te
 
 <div class="tip" data-title="Tip">
 
-> To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
+> **NOTE:** To run the following commands, you will need to have the a bash shell installed on your machine. If you are using Windows, you can use the Windows Subsystem for Linux (WSL) to run the commands.
 
 </div>
 
@@ -675,7 +677,9 @@ locals {
   ---taken out for brevity---
 
   resource_group_name = "${var.resource_group_name}-<your intitals>"
+  aks_prefix = "${var.prefix}-<your intitals>"
   acr_name = "${var.acr_name}<your intitals>"
+  kv_name = "${var.kv_name}-<your intitals>"
 
   ---taken out for brevity---
 }
@@ -711,21 +715,21 @@ terraform validate
 terraform apply -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane --auto-approve
 ```
 
-<div class="warning" data-title="Warning">
-
->Note: You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
-
-</div>
-
 <div class="tip" data-title="Tips">
 
-> Note: This control plane uses the `Application of Applications` pattern using GitOps and Crossplane. The `gitops/bootstrap/control-plane/addons` directory contains the ArgoCD application configuration for the addons.
+> **NOTE:** This control plane uses the `Application of Applications` pattern using GitOps and Crossplane. The `gitops/bootstrap/control-plane/addons` directory contains the ArgoCD application configuration for the addons.
 
 </div>
 
 Terraform completed installing the AKS cluster, installing ArgoCD, and configuring ArgoCD to install applications under the `gitops/bootstrap/control-plane/addons` directory from the git repo.
 
 ![Terraform-provision](./assets/lab2-controlplane/terraform-provision.png)
+
+<div class="warning" data-title="Warning">
+
+>**NOTE:** You can ignore the warnings related to deprecated attributes and invalid kubeconfig path.
+
+</div>
 
 Now that the AKS cluster is provisioned, you can access the ArgoCD UI to manage the applications deployed on the cluster. This will show you the status of the applications deployed on the cluster and allow you to manage the applications.
 
@@ -867,42 +871,7 @@ kubectl get all -n argocd
 
 You should see the following output:
 
-```shell
-NAME                                                              READY   STATUS    RESTARTS          AGE
-pod/argo-cd-argocd-application-controller-0                     1/1     Running   0          38m
-pod/argo-cd-argocd-applicationset-controller-677fd74987-m22gn   1/1     Running   0          38m
-pod/argo-cd-argocd-dex-server-85f5db5458-kqv9s                  1/1     Running   0          38m
-pod/argo-cd-argocd-notifications-controller-6cf884fb7f-pljhc    1/1     Running   0          38m
-pod/argo-cd-argocd-redis-6c766746d8-8k2lj                       1/1     Running   0          38m
-pod/argo-cd-argocd-repo-server-7c96b84946-xqrnz                 1/1     Running   0          38m
-pod/argo-cd-argocd-server-78498f46f6-qrfs9                      1/1     Running   0          38m
-
-NAME                                               TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                      AGE
-service/argo-cd-argocd-applicationset-controller   ClusterIP      10.0.180.20   <none>          7000/TCP                     38m
-service/argo-cd-argocd-dex-server                  ClusterIP      10.0.142.54   <none>          5556/TCP,5557/TCP            38m
-service/argo-cd-argocd-redis                       ClusterIP      10.0.90.173   <none>          6379/TCP                     38m
-service/argo-cd-argocd-repo-server                 ClusterIP      10.0.89.227   <none>          8081/TCP                     38m
-service/argo-cd-argocd-server                      ClusterIP      10.0.85.130   <none>          80:31650/TCP,443:30158/TCP   38m
-
-NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/argo-cd-argocd-applicationset-controller   1/1     1            1           38m
-deployment.apps/argo-cd-argocd-dex-server                  1/1     1            1           38m
-deployment.apps/argo-cd-argocd-notifications-controller    1/1     1            1           38m
-deployment.apps/argo-cd-argocd-redis                       1/1     1            1           38m
-deployment.apps/argo-cd-argocd-repo-server                 1/1     1            1           38m
-deployment.apps/argo-cd-argocd-server                      1/1     1            1           38m
-
-NAME                                                                  DESIRED   CURRENT   READY   AGE
-replicaset.apps/argo-cd-argocd-applicationset-controller-677fd74987   1         1         1       38m
-replicaset.apps/argo-cd-argocd-dex-server-85f5db5458                  1         1         1       38m
-replicaset.apps/argo-cd-argocd-notifications-controller-6cf884fb7f    1         1         1       38m
-replicaset.apps/argo-cd-argocd-redis-6c766746d8                       1         1         1       38m
-replicaset.apps/argo-cd-argocd-repo-server-7c96b84946                 1         1         1       38m
-replicaset.apps/argo-cd-argocd-server-78498f46f6                      1         1         1       38m
-
-NAME                                                     READY   AGE
-statefulset.apps/argo-cd-argocd-application-controller   1/1     38m
-```
+![ArgoCD-No-IP](./assets/lab2-controlplane/argocd-server-no-ip.png)
 
 As you can see, the `Argo CD API server service(service/argo-cd-argocd-server)` is not exposed by default; this means it is configured with a Cluster IP and not a Load Balancer. To access the API server you will have to do the following:
 
@@ -918,12 +887,21 @@ kubectl patch svc argo-cd-argocd-server -n argocd -p '{"spec": {"type": "LoadBal
 
 <div class="tip" data-title="Tips">
 
-> Note: It will take a few minutes for the LoadBalancer to append an external IP to the service. If you want to check the status of the service, you can run the following command again.
+> **NOTE:** It will take a few minutes for the LoadBalancer to append an external IP to the service. If you want to check the status of the service, you can run the following command again.
 
 ```shell
 kubectl get all -n argocd
 ```
+
 </div>
+
+Now you should see that the `argo-cd-argocd-server` service has an external IP assigned to it. You can use this IP to access the ArgoCD UI.
+
+![ArgoCD-IP](./assets/lab2-controlplane/argocd-server-ip.png)
+
+<div class="tip" data-title="Tip">
+
+> **NOTE:** The external IP for the `argo-cd-argocd-server` service may be different from the one shown in the image since the IP address is assigned by Azure.
 
 <div class="task" data-title="Task">
 
@@ -965,7 +943,7 @@ http://localhost:8080
 
 <div class="tip" data-title="Tips">
 
-> Note: The username for the ArgoCD UI login is `admin`. You can use the initial admin password to log in to the ArgoCD UI.
+> **NOTE:** The username for the ArgoCD UI login is `admin`. You can use the initial admin password to log in to the ArgoCD UI.
 
 </div>
 
@@ -989,8 +967,9 @@ In this step, we will build the Backstage Dockerfile and deploy backstage compon
 
 > Open the `app-config.yaml` file in the root directory of your Backstage app, and add the following configuration to the `app-config.yaml` file.
 
+On **Line 1** in `app-config.yaml`
+
 ```yaml
-# On Line 1 in app-config.yaml
 app:
   title: Scaffolded Backstage App
   baseUrl: http://localhost:7007
@@ -1023,11 +1002,14 @@ backend:
     certificate:
       type: 'pem'
       key:
-          $file: /etc/tls/tls.key  #When running a YARN build you will need to make this resolve to the correct path in this case add a . however that will need to change when you build the image for the actual mount point. Alternativley create a local app-config with this removed to run YARN builds.
+          $file: /certs/tls/tls.key  #When running a YARN build you will need to make this resolve to the correct path in this case add a . however that will need to change when you build the image for the actual mount point. Alternativley create a local app-config with this removed to run YARN builds.
       cert: 
-          $file: /etc/tls/tls.crt
+          $file: /certs/tls/tls.crt
+```
 
-# On Line 42 in app-config.yaml
+On **Line 42** in `app-config.yaml`
+
+```yaml
 database:
     client: pg
     connection:
@@ -1039,8 +1021,12 @@ database:
       ssl:
         require: true
         rejectUnauthorized: false
+```
 
-# On Line 65 in app-config.yaml
+On **Line 65** in `app-config.yaml`
+
+```yaml
+
 auth:
   environment: development
   providers:
@@ -1056,8 +1042,11 @@ auth:
           resolvers:
             # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers
             - resolver: usernameMatchingUserEntityName
+```
 
-# On Line 75 in app-config.yaml
+ On **Line 75** in `app-config.yaml`
+
+```yaml
 catalog:
   import:
     entityFilename: catalog-info.yaml
@@ -1160,7 +1149,7 @@ terraform apply -var github_token=<your github token> -var aks_resource_group=<y
 
 <div class="tip" data-title="Tip">
 
-> NOTE: Since we need to input values to the helm release, we will set the `helm_release` to **false**. This will allow us to deploy the Backstage components (i.e. Postgres Db) to the Azure without deploying the Helm chart to the AKS cluster.
+> **NOTE:** Since we need to input values to the helm release, we will set the `helm_release` to **false**. This will allow us to deploy the Backstage components (i.e. Postgres Db) to the Azure without deploying the Helm chart to the AKS cluster.
 
 </div>
 
@@ -1413,13 +1402,13 @@ steps: # A collection of image or container actions.
 
 <div class="warning" data-title="Warning">
 
-> WARNING: Make sure you add the proper url for for the ACR, otherwise the image will not be pushed to the ACR. `.io` for commercial use and `.us` for government use.
+> **NOTE:** Make sure you add the proper url for for the ACR, otherwise the image will not be pushed to the ACR. `.io` for commercial use and `.us` for government use.
 
 </div>
 
 <div class="task" data-title="Task">
 
-> To run the `acr-task.yaml` file, run the following command.
+> **TASK:** To run the `acr-task.yaml` file, run the following command.
 
 ```shell
 az acr run -r controlplaneacr<YOUR_INITALS> -f acr-task.yaml .
@@ -1496,7 +1485,7 @@ pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Runnin
 
 <div class="tip" data-title="Tip">
 
-> Note: The Backstage application is deployed to the AKS cluster. You can access the Backstage application using the following URL:
+> **NOTE:** The Backstage application is deployed to the AKS cluster. You can access the Backstage application using the following URL:
 
 ```shell
 http://<your aks name>.<your aks resource group>.cloudapp.azure.com
