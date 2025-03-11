@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-idp
+  title: Community Backstage App
+  links:
+    - title: Community Backstage App
+      url: https://backstage.constoso.com/
+  annotations:
+    github.com/project-slug: pe-backstage-azure-workshop/backstage-app
+    argocd/app-name: 'community-idp'
+    backstage.io/kubernetes-id: 'community-idp'
+    backstage.io/kubernetes-namespace: backstage
+  tags:
+    - backstage
+    - idp
+spec:
+  type: website
+  system: community-idp
+  owner: platform-engineering
+  lifecycle: production
+  dependsOn:
+    - resource:github
