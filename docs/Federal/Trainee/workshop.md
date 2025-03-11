@@ -17,13 +17,13 @@ navigation_levels: 3
 
 # Product Hands-on Lab - Platform engineering with Backstage and Azure Kubernetes Service
 
-Welcome to this Platform engineering with Backstage and Azure Kubernetes Service Workshop. At its core, platform engineering is about constructing a solid and adaptable groundwork that simplifies and accelerates the development, deployment, and operation of software applications. The goal is to abstract the complexity inherent in managing infrastructure and operational concerns, enabling dev teams to focus on crafting code that adds direct value to the developers.
+## Workshop Overview
+
+Welcome to this Platform engineering with Backstage and Azure Kubernetes Service Workshop. This workshop will cover the topic of platform engineering using Backstage and Azure Kubernetes Service (AKS). The workshop will be a hands-on lab where participants will learn how to build and deploy applications using Backstage and AKS. Participants will also learn about the benefits of using a platform engineering approach to application development and deployment.
+
+At its core, platform engineering is about constructing a solid and adaptable groundwork that simplifies and accelerates the development, deployment, and operation of software applications. The goal is to abstract the complexity inherent in managing infrastructure and operational concerns, enabling dev teams to focus on crafting code that adds direct value to the developers.
 
 In order to comprehend real-world situations, you will be testing with serveral different toos and services in several labs. You will be able to learn how to deploy and manage Azure resources, as well as how to use Azure services to build and deploy applications with the help of AKS, GitHub and Backstage. Don't worry; you will be walked through the entire procedure in this step-by-step lab.
-
-This lab leverages the [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev/gitops-bridge?tab=readme-ov-file). The following diagram shows the high-level architecture of the solution from [platformengineering.org](https://platformengineering.org/):
-
-![GitOps Bridge Pattern](./assets/lab0-prerequisites/gitops-bridge-pattern.png)
 
 The tools in this lab to build out your Integrated Development Platform (IDP) include:
 
@@ -599,19 +599,68 @@ Now that you have run Backstage successfully, you can push the code to GitHub. T
 
 You have completed the first lab. You have now a new Backstage app, configured the app, and enabled GitHub authentication to Backstage. You have also enabled GitHub Org data to Backstage.
 
-In the next lab, we will focus on Day 1 operations, deploying the Control Plane on Azure Kubernetes Service (AKS) using Terraform.
+In the next lab, we will focus on paved paths and how to use Backstage to create a self-service infrastructure for your teams. We will also show you in later labs, how to use Everything as Code in Backstage. This will include Infrastructure as Code, Configuration as Code, and Documentation as Code.
 
 ---
 
-# Lab 2 - Deploy Control Plane on Azure
+# Lab 2 - Building Paved Paths with Backstage
 
-Mastering both Day 1 and Day 2 operations is crucial for platform, and DevOps engineer team to ensure smooth operations in platform engineering.
+In this lab, we will discuss how to implement paved paths in Backstage. Paved paths are predefined paths that provide a set of best practices and configurations for specific types of applications.
+
+Paved paths can be used to create new projects based on predefined templates. These templates can include configuration files, code snippets, and other resources that help developers get started quickly with a new project.
+
+## Step 1 - Define the Paved Path
+
+Before we can create a paved path, we need to define the paved path. The paved path is a set of best practices and configurations for a specific type of application.
+
+### Use Case - Onboarding a new team
+
+In this use case, we will define a paved path for onboarding a new team. The paved path will include the following:
+
+- A new GitHub repository for the team
+- A new GitHub Actions pipeline for the team
+- A new Azure Kubernetes Service (AKS) cluster for the team
+- A Software template for onboading a new team
+
+---
+
+# Lab 3 - Building out your Platform
+
+Mastering both Day 1 and Day 2 operations is crucial your platform, and DevOps engineering team to ensure smooth operations in platform engineering.
 
 Day 1 operations involve the initial setup and configuration of the platform, while Day 2 operations focus on maintenance, updates, responding to incidents, and scaling. We will focus on Day 1 operations in this lab. Setting up the Control Plane cluster on Azure Kubernetes Service (AKS) using Terraform. The Platform Engineering team is responsible for both Day 1 and Day 2 operations of the platform.
 
-To introduce you to the components, the following diagram shows the architecture of the Control Plane cluster. This lab will take approximately 40 minutes to complete.
+To introduce you to the components, the following diagram shows the architecture of the Control Plane cluster. This lab will take approximately 60 minutes to complete.
 
 ![Control Plane Architecture](./assets/lab2-controlplane/control-plane-architecture.png)
+
+In this lab, you will explore how to provision the Control Plane cluster using Terraform. The Control Plane is the foundation of the platform and is used to manage the day 2 operations of the platform. The Control Plane is composed of several components, including:
+
+- **Azure Kubernetes Service:** A public or private Azure Kubernetes Service(AKS) cluster composed of a:
+  - A system node pool in a dedicated subnet. The default node pool hosts only critical system pods and services. The worker nodes have node taint which prevents application pods from beings scheduled on this node pool.
+  - A user node pool hosting user workloads and artifacts in a dedicated subnet.
+- **User-defined Managed Identity:** a user-defined managed identity used by the AKS cluster to create additional resources like load balancers and managed disks in Azure.
+- **Azure Virtual Machine:** Terraform modules can optionally create a jump-box virtual machine to manage the private AKS cluster.
+- **Azure Bastion Host:** a separate Azure Bastion is deployed in the AKS cluster virtual network to provide SSH connectivity to both agent nodes and virtual machines.
+- **Azure NAT Gateway:** a bring-your-own (BYO) Azure NAT Gateway to manage outbound connections initiated by AKS-hosted workloads. The NAT Gateway is associated to the SystemSubnet, UserSubnet, and PodSubnet subnets. The outboundType property of the cluster is set to userAssignedNatGateway to specify that a BYO NAT Gateway is used for outbound connections. NOTE: you can update the outboundType after cluster creation and this will deploy or remove resources as required to put the cluster into the new egress configuration. For more information, see Updating outboundType after cluster creation.
+- **Azure Storage Account:** this storage account is used to store the boot diagnostics logs of both the service provider and service consumer virtual machines. Boot Diagnostics is a debugging feature that allows you to view console output and screenshots to diagnose virtual machine status.
+- **Azure Container Registry:** an Azure Container Registry (ACR) to build, store, and manage container images and artifacts in a private registry for all container deployments.
+- **Azure Key Vault:** an Azure Key Vault used to store secrets, certificates, and keys that can be mounted as files by pods using Azure Key Vault Provider for Secrets Store CSI Driver. For more information, see Use the Azure Key Vault Provider for Secrets Store CSI Driver in an AKS cluster and Provide an identity to access the Azure Key Vault Provider for Secrets Store CSI Driver.
+- **Azure Log Analytics Workspace:** a centralized Azure Log Analytics workspace is used to collect the diagnostics logs and metrics from all the Azure resources:
+  - Azure Kubernetes Service cluster
+  - Azure Key Vault
+  - Azure Network Security Group
+  - Azure Container Registry
+  - Azure Storage Account
+  - Azure jump-box virtual machine
+- **Azure Monitor workspace:** An Azure Monitor workspace is a unique environment for data collected by Azure Monitor. Each workspace has its own data repository, configuration, and permissions. Log Analytics workspaces contain logs and metrics data from multiple Azure resources, whereas Azure Monitor workspaces currently contain only metrics related to Prometheus. Azure Monitor managed service for Prometheus allows you to collect and analyze metrics at scale using a Prometheus-compatible monitoring solution, based on the Prometheus. This fully managed service allows you to use the Prometheus query language (PromQL) to analyze and alert on the performance of monitored infrastructure and workloads without having to operate the underlying infrastructure. The primary method for visualizing Prometheus metrics is Azure Managed Grafana. You can connect your Azure Monitor workspace to an Azure Managed Grafana to visualize Prometheus metrics using a set of built-in and custom Grafana dashboards.
+- **NGINX Ingress Controller:** this lab compares the managed and unmanaged NGINX Ingress Controller. While the managed version is installed using the Application routing add-on, the unmanaged version is deployed using the Helm Terraform Provider. You can use the Helm provider to deploy software packages in Kubernetes. The provider needs to be configured with the proper credentials before it can be used.
+- **Azure Managed Grafana:** an Azure Managed Grafana instance used to visualize the Prometheus metrics generated by the Azure Kubernetes Service(AKS) cluster deployed by the Bicep modules. Azure Managed Grafana is a fully managed service for analytics and monitoring solutions. It’s supported by Grafana Enterprise, which provides extensible data visualizations. This managed service allows to quickly and easily deploy Grafana dashboards with built-in high availability and control access with Azure security.
+NGINX Ingress Controller: this lab compares the managed and unmanaged NGINX Ingress Controller. While the managed version is installed using the Application routing add-on, the unmanaged version is deployed using the Helm Terraform Provider. You can use the Helm provider to deploy software packages in Kubernetes. The provider needs to be configured with the proper credentials before it can be used.
+- **Argo CD:** Argo CD follows the GitOps pattern of using Git repositories as the source of truth for defining the desired application state. The package is installed via Helm.
+- **Crossplane:** Crossplane is installed via Helm with a configurable collection of Upbound Azure Providers. The ConfigProvider is created via a YAML manifest and configured to use the kubelet user-assigned managed identity to connect to Azure. This identity is assigned the Owner role over the Azure subscription. For more information, see Authentication using User-Assigned Managed Identities.
+- **Cert-Manager:** the cert-manager package and Let's Encrypt certificate authority are used to issue a TLS/SSL certificate to the chat applications.
+- **Prometheus:** the AKS cluster is configured to collect metrics to the Azure Monitor workspace and Azure Managed Grafana. Nonetheless, the kube-prometheus-stack Helm chart is used to install Prometheus and Grafana on the AKS cluster.
 
 ## Step 1 - Validate your Pre-requisites
 
@@ -621,6 +670,8 @@ To get started, you will need to validate you have the following tools:
 - [Azure CLI][az-cli-install]
 - [kubectl][kubectl-install]
 - [Helm][helm-install]
+- The deployment must be started by a user who has sufficient permissions to assign roles, such as a `User Access Administrator` or `Owner`.
+- Your Azure account also needs `Microsoft.Resources/deployments/write` permissions at the subscription level.
 
 [az-cli-install]: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
 [terraform-install]: https://learn.hashicorp.com/tutorials/terraform/install-cli
@@ -631,7 +682,12 @@ To get started, you will need to validate you have the following tools:
 
 In this step, we will provision the Control Plane with Azure Kubernetes Service (AKS), ACR and various addons such as Crossplane, and ArgoCD using Terraform. The Control Plane is the foundation of the platform and is used to manage the day 2 operations of the platform. Since we are provisoning the Control Plane, this is Day 1 operations. In later labs, we will focus on Day 2 operations.
 
-With the lab repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `support/lab2/terraform/control-plane` folder. The Terraform files contains all resources you need, including an AKS cluster, ACR, Crossplane, and ArgoCD.
+With the lab repository that you cloned in Lab 1, it comes with a pre-defined Terraform code and configuration. The code is located in the `support/lab2/terraform/control-plane` folder. The Terraform files contains all resources you need, including an AKS cluster, ACR, Crossplane, and ArgoCD. Beucause we want to make this close to real world, we will use a landing zone approach to deploy the Control Plane. The landing zone is a set of best practices and guidelines for deploying Azure resources.
+
+<div class="tip" data-title="Tip">
+
+> **NOTE:** For quicker setup of landing zones for future reference, You can use the [Azure Landing Zones](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/landing-zones/landing-zone-overview) and for Government customers, you can use the [Mission Landing Zone](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/landing-zones/landing-zone-overview#azure-government-landing-zones).
+</div>
 
 <div class="tip" data-title="Tip">
 
@@ -641,17 +697,17 @@ With the lab repository that you cloned in Lab 1, it comes with a pre-defined Te
 
 <div class="task" data-title="Task">
 
-> To provision the Control Plane, run the following command from your **Backstage root directory**:
+> To provision the Control Plane, run the following command from your **root directory**:
 
 </div>
 
 ```shell
-cd support/lab2/terraform/control-plane
+cd support/lab3/terraform/control-plane
 ```
 
 <div class="task" data-title="Task">
 
-> Set your azure region to `eastus` by updating the variable in the `variables.tf` file located in the `support/lab2/terraform/control-plane` folder.
+> Set your azure region to `eastus` by updating the variable in the `variables.tf` file located in the `support/lab3/terraform/control-plane` folder.
 </div>
 
 ```shell
@@ -669,17 +725,22 @@ variable "location" {
 
 <div class="task" data-title="Task">
 
-> Update the resource group name in the `locals.tf` file located in the `support/lab2/terraform/control-plane` folder with your initials.
+> Update the resource group name in the `locals.tf` file located in the `support/lab3/terraform/control-plane` folder with your initials.
 </div>
 
 ```shell
 locals {
   ---taken out for brevity---
 
-  resource_group_name = "${var.resource_group_name}-<your intitals>"
-  aks_prefix = "${var.prefix}-<your intitals>"
-  acr_name = "${var.acr_name}<your intitals>"
-  kv_name = "${var.kv_name}-<your intitals>"
+  resource_group_name          = "${var.resource_group_name}-<your-initals>"
+  aks_cluster_name             = "${var.aks_cluster_name}-<your-initals>"
+  acr_name                     = "${var.acr_name}<your-initals>"
+  kv_name                      = "${var.kv_name}-<your-initals>"
+  storage_account_name         = "${var.storage_account_name}<your-initals>"
+  log_analytics_workspace_name = "${var.log_analytics_workspace_name}-<your-initals>"
+  vnet_name                    = "${var.vnet_name}-<your-initals>"
+  nat_gateway_name             = "${var.nat_gateway_name}-<your-initals>"
+  bastion_name                 = "${var.bastion_name}-<your-initals>"
 
   ---taken out for brevity---
 }
@@ -712,12 +773,12 @@ terraform validate
 </div>
 
 ```shell
-terraform apply -var gitops_addons_org=https://github.com/azurenoops -var infrastructure_provider=crossplane --auto-approve
+terraform apply -var-file="terraform.tfvars" --auto-approve
 ```
 
 <div class="tip" data-title="Tips">
 
-> **NOTE:** This control plane uses the `Application of Applications` pattern using GitOps and Crossplane. The `gitops/bootstrap/control-plane/addons` directory contains the ArgoCD application configuration for the addons.
+> **NOTE:** This control plane uses the `Application of Applications` pattern using GitOps and Crossplane.
 
 </div>
 
@@ -959,303 +1020,183 @@ Now that you have access to the ArgoCD UI, you can manage the applications deplo
 
 Let's add our local instance of Backstage to ArgoCD and the Control Plane cluster.
 
-## Step 5 - Build the Backstage Dockerfile
+---
 
-In this step, we will build the Backstage Dockerfile and deploy backstage components to Azure. The Dockerfile is used to build the Docker image for our local instance of Backstage app. First we need to tighten up our `app-config.yaml` file to update our `app.baseUrl` so it will be ready to deploy our application outside of our local environment. This is to avoid CORS policy issues once deployed on AKS.
+# Lab 4 - Using Everything as Code
+
+In this lab, we will show you how to use **Everything as Code** as a basis for updating various parts of your platform. **Everything as Code** is a concept that allows you to define your infrastructure, configuration, and application code in a declarative way using code.
+
+This allows you to version control your infrastructure and configuration, and automate the deployment of your platform and the applications that use it. We will do two things, first we will update Backstage to use Docs as Code and then we will deploy Backstage to Azure Kubernetes Service (AKS) using Terraform and Helm.
+
+We will use the following tools to deploy Backstage to AKS:
+
+- **Terraform:** Terraform is an open-source infrastructure as code software tool created by HashiCorp. It allows you to define and provision data center infrastructure using a declarative configuration language.
+- **Helm:** Helm is a package manager for Kubernetes. It allows you to define, install, and upgrade Kubernetes applications using Helm charts.
+- **GitOps:** GitOps is a set of practices that uses Git pull requests to manage infrastructure and application configurations. It allows you to use Git as a single source of truth for your infrastructure and application configurations.
+
+Let's start by deploying Backstage to AKS using Terraform and Helm.
+
+## Step 1 - Creating a Kubernetes Namespace
+
+In this step, we will create a Kubernetes namespace for Backstage. A namespace is a way to divide cluster resources between multiple users or teams. It provides a way to organize and isolate resources within a cluster.
+
+Namespaces in Kubernetes are used to organize and isolate resources within a cluster. They provide a way to divide cluster resources between multiple users or teams. Namespaces are useful for managing resources in a multi-tenant environment, where multiple teams or applications share the same cluster.
+
+To create a namespace, we will use a Kubernetes manifest file. A manifest file is a YAML file that defines the desired state of a Kubernetes resource. In this case, we will create a manifest file that defines the `backstage` namespace.
+
+```yaml
+# kubernetes/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backstage
+```
 
 <div class="task" data-title="Task">
 
-> Open the `app-config.yaml` file in the root directory of your Backstage app, and add the following configuration to the `app-config.yaml` file.
+> go to the `support/lab4/backstage/kubernetes` folder
 
-On **Line 1** in `app-config.yaml`
+</div>
 
-```yaml
-app:
-  title: Scaffolded Backstage App
-  baseUrl: http://localhost:7007
-
-organization:
-  name: <Your Org Name>
-
-backend:
-  # Used for enabling authentication, secret is shared by all backend plugins
-  # See https://backstage.io/docs/auth/service-to-service-auth for
-  # information on the format
-  # auth:
-  #   keys:
-  #     - secret: ${BACKEND_SECRET}
-  baseUrl: http://localhost:7007
-  listen:
-    port: 7007
-    # Uncomment the following host directive to bind to specific interfaces
-    # host: 127.0.0.1
-  csp:
-    connect-src: ["'self'", 'http:', 'https:']
-    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
-    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
-  cors:
-    origin: http://localhost:7007
-    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
-    credentials: true
-    Access-Control-Allow-Origin: '*'
-  https:
-    certificate:
-      type: 'pem'
-      key:
-          $file: /certs/tls/tls.key  #When running a YARN build you will need to make this resolve to the correct path in this case add a . however that will need to change when you build the image for the actual mount point. Alternativley create a local app-config with this removed to run YARN builds.
-      cert: 
-          $file: /certs/tls/tls.crt
+```shell
+cd support/lab4/backstage/kubernetes
 ```
 
-On **Line 42** in `app-config.yaml`
+<div class="task" data-title="Task">
+
+> Then run the following command to create the namespace:
+</div>
+
+```shell
+kubectl apply -f namespace.yaml
+```
+
+## Step 2 - Creating the PostgreSQL database
+
+In this step, we will create a PostgreSQL database for Backstage. Backstage uses PostgreSQL as its database. We will use the Bitnami PostgreSQL Helm chart to deploy PostgreSQL to AKS.
+
+The Bitnami PostgreSQL Helm chart is a popular chart that provides a simple way to deploy PostgreSQL to Kubernetes. It includes a number of features such as replication, persistence, and monitoring. We are using the Helm chart instead of the Kubernetes manifest file to deploy PostgreSQL because it provides a number of features that are not available in the manifest file. For example, the Helm chart includes a number of configuration options that allow you to customize the deployment of PostgreSQL. This makes it easier to deploy PostgreSQL to Kubernetes.
+
+<div class="tip" data-title="Tip">
+
+> **NOTE:** If you want to deploy PostgreSQL using the Kubernetes manifest files, they are located in the `support/lab4/backstage/kubernetes/postgresql` folder.
+
+</div>
+
+To deploy PostgreSQL to AKS, we will use the following command:
+
+```shell
+helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to deploy PostgreSQL to AKS:
+
+```shell
+helm install postgres bitnami/postgresql \
+  --namespace backstage \
+  --set postgresqlUsername=postgres \
+  --set postgresqlPassword=postgres \
+  --set persistence.enabled=true \
+  --set persistence.size=2Gi
+```
+<div class="tip" data-title="Tip">
+
+> **NOTE:** The `--set` flag is used to set the values for the Helm chart. In this case, we are setting the PostgreSQL password and enabling persistence for the database. The persistence size is set to 8Gi.
+
+</div>
+
+<div class="task" data-title="Task">
+
+> Run the following command to check the status of the PostgreSQL deployment:
+
+```shell
+kubectl get pods -n backstage
+```
+You should see the following output:
+
+```shell
+NAME                            READY   STATUS    RESTARTS   AGE
+postgres-postgresql-0           1/1     Running   0          2m
+```
+
+<div class="tip" data-title="Tip">
+
+> **NOTE:** The `postgres-postgresql-0` pod is the PostgreSQL database pod. It should be in the `Running` state. If it is not, you can check the logs of the pod using the following command:
+
+```shell
+kubectl logs postgres-postgresql-0 -n backstage
+```
+</div>
+
+You should see the logs of the PostgreSQL pod. If there are any errors, you can check the logs to troubleshoot the issue.
+
+```shell
+postgresql 15:13:48.96 INFO  ==> 
+postgresql 15:13:48.96 INFO  ==> Welcome to the Bitnami postgresql container
+postgresql 15:13:49.05 INFO  ==> Subscribe to project updates by watching https://github.com/bitnami/containers
+postgresql 15:13:49.05 INFO  ==> Did you know there are enterprise versions of the Bitnami catalog? For enhanced secure software supply chain features, unlimited pulls from Docker, LTS support, or application customization, see Bitnami Premium or Tanzu Application Catalog. See https://www.arrow.com/globalecs/na/vendors/bitnami/ for more information.
+postgresql 15:13:49.05 INFO  ==> 
+postgresql 15:13:49.15 INFO  ==> ** Starting PostgreSQL setup **
+postgresql 15:13:49.26 INFO  ==> Validating settings in POSTGRESQL_* env vars..
+postgresql 15:13:49.35 INFO  ==> Loading custom pre-init scripts...
+postgresql 15:13:49.35 INFO  ==> Initializing PostgreSQL database...
+postgresql 15:13:49.46 INFO  ==> pg_hba.conf file not detected. Generating it...
+postgresql 15:13:49.46 INFO  ==> Generating local authentication configuration
+postgresql 15:13:54.66 INFO  ==> Starting PostgreSQL in background...
+postgresql 15:13:55.86 INFO  ==> Changing password of postgres
+postgresql 15:13:56.16 INFO  ==> Configuring replication parameters
+postgresql 15:13:56.36 INFO  ==> Configuring synchronous_replication
+postgresql 15:13:56.45 INFO  ==> Configuring fsync
+postgresql 15:13:56.66 INFO  ==> Stopping PostgreSQL...
+waiting for server to shut down.... done
+server stopped
+postgresql 15:13:56.86 INFO  ==> Loading custom scripts...
+postgresql 15:13:56.87 INFO  ==> Enabling remote connections
+
+postgresql 15:13:56.95 INFO  ==> ** PostgreSQL setup finished! **
+postgresql 15:13:57.06 INFO  ==> ** Starting PostgreSQL **
+2025-03-11 15:13:57.162 GMT [1] LOG:  pgaudit extension initialized
+2025-03-11 15:13:57.254 GMT [1] LOG:  starting PostgreSQL 17.4 on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+2025-03-11 15:13:57.254 GMT [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-03-11 15:13:57.254 GMT [1] LOG:  listening on IPv6 address "::", port 5432
+2025-03-11 15:13:57.261 GMT [1] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2025-03-11 15:13:57.273 GMT [132] LOG:  database system was shut down at 2025-03-11 15:13:56 GMT
+2025-03-11 15:13:57.287 GMT [1] LOG:  database system is ready to accept connections
+```
+
+## Step 3 - Creating the Backstage instance
+
+In this step, we will create a Backstage instance. Now that we have PostgreSQL up and ready to store data, we can create the Backstage instance. This follows similar steps as the PostgreSQL deployment.
+
+### Creating a Backstage Docker image
+
+In this step, we will create a Backstage Docker image. A Docker image is a lightweight, standalone, executable package that includes everything needed to run a piece of software, including the code, runtime, libraries, and environment variables. The Dockerfile is used to build the Docker image for our local instance of Backstage app. First we need to tighten up our app-config.yaml file to update our app.baseUrl so it will be ready to deploy our application outside of our local environment. This is to avoid CORS policy issues once deployed on AKS.
+
+<div class="task" data-title="Task">
+
+> > Open the `app-config.yaml` file in the root directory of your Backstage app, and add the following configuration to the `app-config.yaml` file.
+
+On **Line 30** in `app-config.yaml`
 
 ```yaml
 database:
-    client: pg
-    connection:
-      host: ${POSTGRES_HOST}
-      port: ${POSTGRES_PORT}
-      user: ${POSTGRES_USER}
-      password: ${POSTGRES_PASSWORD}
-      database: ${POSTGRES_DB}
-      ssl:
-        require: true
-        rejectUnauthorized: false
+    client: better-sqlite3 #<---- Delete this existing line
+    connection: ':memory:' #<---- Delete this existing line
+    # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
+    # config options: https://node-postgres.com/apis/client <---- Uncomment all lines below here
+    #client: pg 
+    # connection:
+    # host: ${POSTGRES_HOST}
+    # port: ${POSTGRES_PORT}
+    # user: ${POSTGRES_USER}
+    # password: ${POSTGRES_PASSWORD}
 ```
 
-On **Line 65** in `app-config.yaml`
+Now that we have our app-config.yaml file updated, we can start building our Docker image. The Dockerfile is used to build the Docker image for our local instance of Backstage app. The Dockerfile is a text file that contains all the commands to assemble an image. It is used to create a Docker image that can be run on any machine that has Docker installed.
 
 ```yaml
-
-auth:
-  environment: development
-  providers:
-    github:
-      development:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
-        ## uncomment if using GitHub Enterprise
-        # enterpriseInstanceUrl: ${GITHUB_ENTERPRISE_INSTANCE_URL}
-        ## uncomment to set lifespan of user session
-        # sessionDuration: { hours: 24 } # supports `ms` library format (e.g. '24h', '2 days'), ISO duration, "human duration" as used in code
-        signIn:
-          resolvers:
-            # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers
-            - resolver: usernameMatchingUserEntityName
-```
-
- On **Line 75** in `app-config.yaml`
-
-```yaml
-catalog:
-  import:
-    entityFilename: catalog-info.yaml
-    pullRequestBranchName: backstage-integration
-  rules:
-    - allow: [Component, System, API, Resource, Location]
-  locations:
-    # Local example data, file locations are relative to the backend process, typically `packages/backend`
-    - type: file
-      target: ../../examples/entities.yaml
-
-    # Local example template
-    - type: file
-      target: ../../examples/template/template.yaml
-      rules:
-        - allow: [Template]
-
-    # Local example organizational data
-    - type: file
-      target: ../../examples/org.yaml
-      rules:
-        - allow: [User, Group]
-  useUrlReadersSearch: true
-```
-
-</div>
-
-Next, we need to update `locals.tf` with the following configuration:
-
-```shell
-# On Line 5 in support/lab2/terraform/backstage/locals.tf
-locals {
-  ---taken out for brevity---
-
-  resource_group_name = "${var.resource_group_name}-<your intitals>"
-
-  ---taken out for brevity---
-}
-```
-
-Now we are ready to deploy Backstage components to the Azure.
-
-<div class="task" data-title="Task">
-
-> To add Backstage to Azure, run the following command from your **Terraform Backstage root directory** in the **bash** terminal.
-</div>
-
-```shell
-cd support/lab2/terraform/backstage
-```
-
-<div class="task" data-title="Task">
-
-> Set your azure region to `eastus` by updating the variable in the `variables.tf` file located in the `support/lab2/terraform/backstage` folder.
-</div>
-
-```shell
-variable "location" {
-  description = "Specifies the the location for the Azure resources."
-  type        = string
-  default     = "eastus"
-}
-```
-
-<div class="tip" data-title="Tip">
-
-> If you are in the **Azure Government** region, you can set the region to `usgovvirginia`. Also, remember to run export the `ARM_ENVIRONMENT` environment variable to point to the Azure Government environment.
-
-```shell
-export ARM_ENVIRONMENT=USGovernment
-```
-
-</div>
-
-<div class="task" data-title="Task">
-
-> Then run the following command to initialize Terraform:
-</div>
-
-```shell
-terraform init
-```
-
-<div class="task" data-title="Task">
-
-> Then run the following command to validate the Terraform configuration:
-</div>
-
-```shell
-terraform validate
-```
-
-<div class="task" data-title="Task">
-
-> Then run the following command to plan the Terraform configuration:
-
-```shell
-terraform apply -var github_token=<your github token> -var aks_resource_group=<your aks resource group> -var aks_node_resource_group=<your aks node resource group> -var aks_name=<your aks name> -var kubconfig_path=<your kubconfig path> -var helm_release=false --auto-approve
-```
-
-<div class="tip" data-title="Tip">
-
-> **NOTE:** Since we need to input values to the helm release, we will set the `helm_release` to **false**. This will allow us to deploy the Backstage components (i.e. Postgres Db) to the Azure without deploying the Helm chart to the AKS cluster.
-
-</div>
-
-After the Terraform apply is complete, you should see the following output:
-
-```shell
-Apply complete! Resources: 10 added, 0 changed, 0 destroyed.
-
-Outputs:
-
-postgres_db_name = "backstage_plugin_catalog"
-postgres_host = "backstage-postgresql-server.postgres.database.usgovcloudapi.net"
-postgres_password = <sensitive> # can be found in the variables.tf file
-postgres_username = "psqladminun"
-```
-
-Next, we need to button up Backstage to be ready for deployment. We can add the Postgres client to our application with the following configuration:
-
-```yaml
-# From your Backstage root directory
-yarn --cwd packages/backend add pg
-```
-
-Now, is to add our database config to our application. To do this we need to open `app-config.yaml` and add our **PostgreSQL** configuration in the root directory of our Backstage app using the credentials from the previous steps.
-
-```yaml
-# On Line 42 in app-config.yaml
-backend:
-  database:
-    # config options: https://node-postgres.com/apis/client <---- Add all lines below here
-    client: pg
-    connection:
-      host: ${POSTGRES_HOST}
-      port: ${POSTGRES_PORT}
-      user: ${POSTGRES_USER}
-      password: ${POSTGRES_PASSWORD}
-```
-
-<div class="task" data-title="Task">
-
-> For the sake of this lab we will pass our user and password in as hard coded values to our yaml file. This is not advisable in production. Please use your accepted application config method if deploying into production. To do this we need to open `app-config.yaml` and add our **PostgreSQL** configuration in the root directory of our Backstage app using the credentials from the previous steps.
-
-```shell
-HOST=backstage-postgresql-server.postgres.database.usgovcloudapi.net >> ${POSTGRES_HOST} # In place of
-PORT=5432 >> ${POSTGRES_PORT} # In place of
-USER=psqladminun >> ${POSTGRES_USER} # In place of
-PASSWORD=<your postgres password> >> ${POSTGRES_PASSWORD} # In place of
-```
-
-</div>
-
-We now need to copy the folder `charts/backstage` from the `misc` folder to the `backstage` root folder.
-
-<div class="task" data-title="Task">
-
-> Create folders `charts/backstage` in the `backstage` root folder.
-</div>
-
-```shell
-mkdir -p charts/backstage
-```
-
-<div class="task" data-title="Task">
-
-> To move the folder, run the following command from your **root directory**:
-</div>
-
-```shell
-cp -R misc/charts/backstage backstage/charts/backstage  
-```
-
-We now need to copy tls.crt and tls.key from the `support/lab2/terraform/backstage` folder to the `backstage/certs/tls` root folder.
-
-<div class="task" data-title="Task">
-
-> Now, from our backstage root folder `support/lab2/terraform/backstage` we need to run the following commands
-
-</div>
-
-<div class="task" data-title="Task">
-
-> Create folders `certs/tls` in the `backstage` root folder.
-</div>
-
-```shell
-mkdir -p certs/tls
-```
-
-<div class="task" data-title="Task">
-
-> To copy contents the folder, run the following command from your **root directory**:
-</div>
-
-```shell
-cp -R support/lab2/terraform/backstage/tls.crt backstage/certs/tls
-cp -R support/lab2/terraform/backstage/tls.key backstage/certs/tls
-```
-
-We will be doing a host build to save some time. We'll build the backend on our host whether thats local or a CI pipeline and then we will build our docker image. 
-
-
-<div class="task" data-title="Task">
-
-> To start with from our backstage root folder we need to run the following commands:
-
-```shell
 yarn install --immutable
 
 # tsc outputs type definitions to dist-types/ in the repo root, which are then consumed by the build
@@ -1265,275 +1206,186 @@ yarn tsc
 yarn build:backend
 ```
 
-</div>
-
-Once the host build is complete, We now need to inspect the Dockerfile to make sure it is set up correctly.
-
-The Dockerfile is located in the `packages/backend` folder of your Backstage app.
-
-The dockerfile is below:
-
-```dockerfile
-# This dockerfile builds an image for the backend package.
-# It should be executed with the root of the repo as docker context.
-
-FROM node:20-bookworm-slim
-
-# Set Python interpreter for `node-gyp` to use
-ENV PYTHON=/usr/bin/python3
-
-# Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3 g++ build-essential && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
-# in which case you should also move better-sqlite3 to "devDependencies" in package.json.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# From here on we use the least-privileged `node` user to run the backend.
-USER node
-
-# This should create the app dir as `node`.
-# If it is instead created as `root` then the `tar` command below will fail: `can't create directory 'packages/': Permission denied`.
-# If this occurs, then ensure BuildKit is enabled (`DOCKER_BUILDKIT=1`) so the app dir is correctly created as `node`.
-WORKDIR /app
-
-# Copy files needed by Yarn
-COPY --chown=node:node .yarn ./.yarn
-COPY --chown=node:node .yarnrc.yml ./
-COPY --chown=node:node backstage.json ./
-
-# This switches many Node.js dependencies to production mode.
-ENV NODE_ENV=production
-
-# This disables node snapshot for Node 20 to work with the Scaffolder
-ENV NODE_OPTIONS="--no-node-snapshot"
-
-# Copy repo skeleton first, to avoid unnecessary docker cache invalidation.
-# The skeleton contains the package.json of each package in the monorepo,
-# and along with yarn.lock and the root package.json, that's enough to run yarn install.
-COPY --chown=node:node yarn.lock package.json packages/backend/dist/skeleton.tar.gz ./
-RUN tar xzf skeleton.tar.gz && rm skeleton.tar.gz
-
-RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
-    yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
-
-# This will include the examples, if you don't need these simply remove this line
-COPY --chown=node:node examples ./examples
-
-# Then copy the rest of the backend bundle, along with any other files we might want.
-COPY --chown=node:node packages/backend/dist/bundle.tar.gz app-config*.yaml ./
-RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
-
-CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
-
-```
-
-Inspect the dockerfile and make sure the following lines are present:
-
-```dockerfile
-# This disables node snapshot for Node 20 to work with the Scaffolder
-ENV NODE_OPTIONS="--no-node-snapshot"
-```
-
-```dockerfile
-# This will include the examples, certs and template-cluster, if you don't need these simply remove this line
-COPY --chown=node:node examples ./examples
-# This will be used in a later step
-# COPY --chown=node:node packages/template-cluster ./template-cluster
-ENV NODE_EXTRA_CA_CERTS=/certs/tls/tls.crt
-RUN printenv
-```
-
-```dockerfile
-# Remove app-config.production.yaml from this line
-CMD ["node", "packages/backend", "--config", "app-config.yaml"]
-```
-
-Now we are ready to build the docker image.
-
 <div class="task" data-title="Task">
 
-> You can use the following command to build the Docker image.
+>Once the host build is complete, we are ready to build our image.
 </div>
 
 ```shell
-docker build . -f packages/backend/Dockerfile -t backstage 
-```
-
-After the image is successfully built it's pushed to the registry we created earlier. Azure provides a hosted pool to build these images however ACR also now supports using a self hosted pool for production environments. If we had set our endpoint to private we would use a self hosted pool to build the image.
-
-As we require Buildkit to be enabled we need to use ACR's multi-step YAML file. Create a file called acr-task.yaml.
-
-<div class="task" data-title="Task">
-
-> Create a file called acr-task.yaml in the root directory of your Backstage app.
-</div>
-
-```shell
-touch acr-task.yaml
-```
-
-<div class="task" data-title="Task">
-
-> Add the following content to the acr-task.yaml file.
-
-```yaml
-version: v1.0.0
-stepTimeout: 1000
-env:
-  [DOCKER_BUILDKIT=1]
-steps: # A collection of image or container actions.
-  - build: -t controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1 -f Dockerfile .
-  - push:  
-    - controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1
-  - tag:
-    - backstage controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1
-```  
-
-</div>
-
-<div class="warning" data-title="Warning">
-
-> **NOTE:** Make sure you add the proper url for for the ACR, otherwise the image will not be pushed to the ACR. `.io` for commercial use and `.us` for government use.
-
-</div>
-
-<div class="task" data-title="Task">
-
-> **TASK:** To run the `acr-task.yaml` file, run the following command.
-
-```shell
-az acr run -r controlplaneacr<YOUR_INITALS> -f acr-task.yaml .
-```
-
-</div>
-
-Once this has run we should see our image in our registry:
-
-![acr-backstage-image](./assets/lab2-controlplane/acr-backstage-image.png)
-
-Now, we can add our Backstage instance to the Control Plane cluster.
-
-## Step 6 - Adding Backstage to Control Plane
-
-In this step, we will add our Backstage instance to the Control Plane cluster. We will use the ArgoCD UI to add our Backstage instance to the Control Plane cluster.
-To do this, we need to create a new ArgoCD application for our Backstage instance. We will use the following configuration to create the ArgoCD application.
-
-<div class="task" data-title="Task">
-
-> Now we need to update values in the `backstage/main.tf` file.
-
-```shell
-# On Line 5 in backstage/main.tf
-resource "helm_release" "backstage" {
-  count      = var.helm_release ? 1 : 0
-  depends_on = [kubernetes_secret.tls_secret]
-  name       = "backstage"
-  repository = "oci://backstageacr<your intitals>.azurecr.us"
-  chart      = "backstagechart"
-  version    = "1.0.0"
-
-  set {
-    name  = "image.repository"
-    value = "backstageacr<your intitals>.azurecr.us/backstage"
-  }
-  set {
-    name  = "image.tag"
-    value = "v1"
-  }
-
---- Taken out for brevity ---
-}
-```
-
-</div>
-
-<div class="task" data-title="Task">
-
-> Now run the following command to apply the Terraform configuration for the AKS cluster, to do this set the `helm_release` to **true**:
-
-```shell
-terraform apply -var github_token=<your github token> -var aks_resource_group=<your aks resource group> -var aks_node_resource_group=<your aks node resource group> -var aks_name=<your aks name> -var kubconfig_path=<your kubconfig path> -var helm_release=true --auto-approve
-```
-
-</div>
-
-<div class="task" data-title="Task">
-
-> To check the status of the Backstage application, you can run the following command:
-
-```shell
-kubectl get all -n backstage
-```
-
-You should see the following output:
-
-```shell
-NAME                                                              READY   STATUS    RESTARTS          AGE
-pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
-pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
-pod/backstage-5c6d7f8b4c-2j5gq                                    1/1     Running   0                 46m
+docker image build -t backstageimage:v1 -f packages/backend/Dockerfile .
 ```
 
 <div class="tip" data-title="Tip">
 
-> **NOTE:** The Backstage application is deployed to the AKS cluster. You can access the Backstage application using the following URL:
+> **NOTE:** The `-t` flag is used to tag the image with a name and version. In this case, we are tagging the image with the name `controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1`. You can change the name and version to whatever you like.
+</div>
+
+<div class="task" data-title="Task">
+> Run the following command to check the status of the Docker image:
 
 ```shell
-http://<your aks name>.<your aks resource group>.cloudapp.azure.com
+docker images
 ```
+You should see the following output:
+
+```shell
+REPOSITORY                                      TAG       IMAGE ID       CREATED         SIZE
+backstageimage   v1        1234567890ab   2 minutes ago   1.23GB
+```
+
+<div class="tip" data-title="Tip">
+
+> **NOTE:** The `backstageimage:v1` image should be in the `docker images` list. If it is not, you can check the logs of the Docker build to troubleshoot the issue.
 
 </div>
 
-Next, let's build out paved path templates to be used in Backstage.
+Now, we need to push the Docker image to the Azure Container Registry (ACR) so that we can use it in our AKS cluster. To do this, we need to log in to the ACR and push the image.
 
----
+<div class="task" data-title="Task">
 
-# Lab 3 - Building Paved Paths with Backstage
+> Run the following command to log in to the ACR:
 
-In this lab, we will discuss how to implement paved paths in Backstage. Paved paths are predefined paths that provide a set of best practices and configurations for specific types of applications.
+```shell
+az acr login --name controlplaneacr<YOUR_INITALS>
+```
 
-Paved paths can be used to create new projects based on predefined templates. These templates can include configuration files, code snippets, and other resources that help developers get started quickly with a new project.
+<div class="tip" data-title="Tip">
 
-## Step 1 - Define the Paved Path
+> **NOTE:** The `controlplaneacr<YOUR_INITALS>` is the name of the ACR that was created by Terraform. You can check the name of the ACR in the Azure Portal.
+</div>
 
-Before we can create a paved path, we need to define the paved path. The paved path is a set of best practices and configurations for a specific type of application.
+<div class="task" data-title="Task">
 
-### Use Case - Onboarding a new team
+> Run the following command to push the Docker image to the ACR:
 
-In this use case, we will define a paved path for onboarding a new team. The paved path will include the following:
+```shell
+docker push controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1
+```
 
-- A new GitHub repository for the team
-- A new GitHub Actions pipeline for the team
-- A new Azure Kubernetes Service (AKS) cluster for the team
-- A Software template for onboading a new team
+<div class="tip" data-title="Tip">
 
----
+> **NOTE:** The `docker push` command is used to push the Docker image to the ACR. The image name should be in the format `<acr-name>/<image-name>:<tag>`. In this case, we are pushing the image to the `controlplaneacr<YOUR_INITALS>.azurecr.io/backstageimage:v1` image.
 
-# Lab 4 - Everything as Code
+</div>
 
-In this lab, we will show you how to use Everything as Code in Backstage. **Everything as Code** is a concept that allows you to define your infrastructure, configuration, and application code in a declarative way using code.
+<div class="task" data-title="Task">
 
-We will be doing a couple of things in this lab:
+> Run the following command to check the status of the Docker image in the ACR:
 
-1. Define Infrastructure as Code for deployment of Backstage on Azure
-2. Define Configuration as Code for the management of Backstage configuration
-3. Define Documentation as Code for the management of Backstage documentation
+```shell
+az acr repository list --name controlplaneacr<YOUR_INITALS> --output table
+```
+You should see the following output:
 
-## Step 1 - Deploying Backstage to AKS with Infrastructure as Code
+```shell
+Repository
+----------------
+backstageimage
+```
 
-In this step, we will define the infrastructure as code for the deployment of Backstage on Azure. We will use Terraform to define the infrastructure as code.
+<div class="tip" data-title="Tip">
+> **NOTE:** The `backstageimage` image should be in the ACR. If it is not, you can check the logs of the Docker push to troubleshoot the issue.
+</div>
 
-We will use the docker file that comes with the Backstage app to create a Docker image and deploy it to Azure. We will then create a Kubernetes cluster on Azure and deploy the Docker image to the cluster.
+### Creating a Backstage secret
 
+In this step, we will create a Backstage secret. A secret is a Kubernetes object that stores sensitive data, such as passwords or tokens. Backstage uses a secret to store the PostgreSQL password.
+
+To create a secret, we will use a Kubernetes manifest file. A manifest file is a YAML file that defines the desired state of a Kubernetes resource. In this case, we will create a manifest file that defines the `backstage` secrets.
+
+```yaml
+# kubernetes/backstage-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backstage-secrets
+  namespace: backstage
+type: Opaque
+data:
+  GITHUB_TOKEN: <add-github-token>
+  GITHUB_APP_ID: <add-github-app-id>
+  GITHUB_CLIENT_ID: <add-github-client-id>
+  GITHUB_CLIENT_SECRET: <add-github-client-secret>
+  POSTGRES_PASSWORD: <add-postgres-password>
+  POSTGRES_USER: <add-postgres-user>
+```
+
+<div class="task" data-title="Task">
+
+> Go to the `support/lab4/backstage/kubernetes` folder
+</div>
+
+```shell
+cd support/lab4/backstage/kubernetes
+```
+
+<div class="task" data-title="Task">
+
+> Then run the following command to create the secret:
+
+```shell
+kubectl apply -f backstage-secret.yaml
+```
+<div class="task" data-title="Task">
+
+> Run the following command to check the status of the Secrets deployment:
+
+```shell
+kubectl get secrets -n backstage
+```
+You should see the following output:
+
+```shell
+NAME                            TYPE                                  DATA   AGE
+backstage-secrets               Opaque                                6      2m
+```
+
+### Creating a Backstage deployment
+
+In this step, we will create a Backstage deployment. A deployment is a Kubernetes object that manages a set of replicas of a pod. It ensures that the desired number of replicas are running at all times.
+
+To create a deployment, we will use a Kubernetes manifest file. A manifest file is a YAML file that defines the desired state of a Kubernetes resource. In this case, we will create a manifest file that defines the `backstage` deployment.
+
+```yaml
+# kubernetes/backstage.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      containers:
+        - name: backstage
+          image: backstage:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7007
+          envFrom:
+            - secretRef:
+                name: postgres-secrets
+            - secretRef:
+                name: backstage-secrets
+# Uncomment if health checks are enabled in your app:
+# https://backstage.io/docs/plugins/observability#health-checks
+#          readinessProbe:
+#            httpGet:
+#              port: 7007
+#              path: /healthcheck
+#          livenessProbe:
+#            httpGet:
+#              port: 7007
+#              path: /healthcheck
+```
 
 ---
 
@@ -1563,12 +1415,6 @@ In your resource group, you will find:
 ---
 
 # Lab 6 - Self-Service Infrastructure
-
-In this lab, you will explore how to use Backstage to create a self-service infrastructure for your teams. You will create a new Backstage app and add a new template to the app. **Self-Service Infrastructure** is a concept that allows teams to create and manage their own infrastructure without the need for IT intervention.
-
-We will be doing a couple of things in this lab:
-
-1. 
 
 ---
 
